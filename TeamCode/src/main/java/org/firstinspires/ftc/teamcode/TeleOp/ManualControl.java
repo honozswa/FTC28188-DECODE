@@ -267,9 +267,9 @@ public class ManualControl extends LinearOpMode {
             GateServo.setPosition(OpenPos);
             shootMotor.setVelocity(targetVelocity + 200);
             shootMotor2.setVelocity(targetVelocity + 200);
-            intakeMotor.setPower(0.8);
+            intakeMotor.setPower(0.65);
             gateMotor.setPower(1);
-        } else if (gamepad1.right_trigger > 0.5) {
+        } else if (gamepad1.right_trigger > 0.5 || gamepad2.right_trigger > 0.5) {
             intakeMotor.setPower(1);
             GateServo.setPosition(ClosePos);
         } else if (gamepad1.dpad_left) {

@@ -47,10 +47,14 @@ public class AutoControl extends LinearOpMode {
     boolean autoDriving = false;
     long lastShooterUpdate = 0;
     double distanceFiltered = 60; // starting guess (any reasonable distance)
-    double velOffset = 60;
+    double velOffset = 100;
+    boolean autoShooterEnabled = false;
 
     @Override
     public void runOpMode() {
+
+        follower = org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower(hardwareMap);
+        follower.setStartingPose(new Pose(36, 135.5, Math.toRadians(180)));
 
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
@@ -84,9 +88,6 @@ public class AutoControl extends LinearOpMode {
         HoodServo2.setPosition(HoodPosition2);
         GateServo.setPosition(ClosePos);
 
-        follower = org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(36, 135.5, Math.toRadians(180)));
-
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -104,6 +105,10 @@ public class AutoControl extends LinearOpMode {
         while (opModeIsActive()) {
 
             follower.update();
+
+            if (gamepad2.xWasPressed()) {
+                autoShooterEnabled = !autoShooterEnabled;
+            }
 
             autoShooter();
 
@@ -232,6 +237,7 @@ public class AutoControl extends LinearOpMode {
         // =======================
         // Flywheel
         // =======================
+
         shootMotor.setVelocity(targetVelocity);
         shootMotor2.setVelocity(targetVelocity);
 
@@ -244,9 +250,9 @@ public class AutoControl extends LinearOpMode {
 
         if (gamepad1.right_bumper) {
             GateServo.setPosition(OpenPos);
-            intakeMotor.setPower(0.8);
+            intakeMotor.setPower(0.65);
             gateMotor.setPower(1);
-        } else if (gamepad1.right_trigger > 0.5) {
+        } else if (gamepad1.right_trigger > 0.5 || gamepad2.right_trigger > 0.5) {
             intakeMotor.setPower(1);
             GateServo.setPosition(ClosePos);
         } else if (gamepad1.x) {
@@ -335,36 +341,41 @@ public class AutoControl extends LinearOpMode {
 
     public void autoShooter() {
 
-        Pose robotPose = follower.getPose();
+        if (!autoShooterEnabled) {
+            targetVelocity = 0;
+        } else if (autoShooterEnabled) {
 
-        double rawDistance = getDistanceToGoal(robotPose);
-        distanceFiltered = 0.8 * distanceFiltered
-                + 0.2 * rawDistance;
+            Pose robotPose = follower.getPose();
 
-        // prevent regression explosion
-        rawDistance = Range.clip(rawDistance, 0, 300);
+            double rawDistance = getDistanceToGoal(robotPose);
+            distanceFiltered = 0.8 * distanceFiltered
+                    + 0.2 * rawDistance;
 
-        double velocity = getFlywheelVelocity(distanceFiltered);
-        double hood = getHoodPosition(distanceFiltered);
+            // prevent regression explosion
+            rawDistance = Range.clip(rawDistance, 0, 300);
 
-        velocity = Range.clip(velocity, 900, 1700);
-        hood = Range.clip(hood, 0.15, 0.35);
+            double velocity = getFlywheelVelocity(distanceFiltered);
+            double hood = getHoodPosition(distanceFiltered);
 
-        if(System.currentTimeMillis() - lastShooterUpdate > 100) {
-            targetVelocity = velocity;
-            lastShooterUpdate = System.currentTimeMillis();
+            velocity = Range.clip(velocity, 900, 1700);
+            hood = Range.clip(hood, 0.15, 0.35);
+
+            if (System.currentTimeMillis() - lastShooterUpdate > 100) {
+                targetVelocity = velocity;
+                lastShooterUpdate = System.currentTimeMillis();
+            }
+
+            HoodPosition1 = hood;
+            HoodPosition2 = 1 - hood;
+
+            HoodServo.setPosition(HoodPosition1);
+            HoodServo2.setPosition(HoodPosition2);
+
+            telemetry.addData("Raw Distance", rawDistance);
+            telemetry.addData("Filtered Distance", distanceFiltered);
+            telemetry.addData("Auto Vel", velocity);
+            telemetry.addData("Auto Hood", hood);
         }
-
-        HoodPosition1 = hood;
-        HoodPosition2 = 1 - hood;
-
-        HoodServo.setPosition(HoodPosition1);
-        HoodServo2.setPosition(HoodPosition2);
-
-        telemetry.addData("Raw Distance", rawDistance);
-        telemetry.addData("Filtered Distance", distanceFiltered);
-        telemetry.addData("Auto Vel", velocity);
-        telemetry.addData("Auto Hood", hood);
     }
 
 }

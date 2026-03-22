@@ -16,9 +16,9 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.geometry.Pose;
 
-@Autonomous(name = "Auto Test", group = "Test")
+@Autonomous(name = "Shot's Mechanic Test", group = "Test")
 @Configurable
-public class AutoTest extends OpMode {
+public class ShotMechanicTest extends OpMode {
 
     private TelemetryManager panelsTelemetry;
     public Follower follower;
@@ -96,7 +96,7 @@ public class AutoTest extends OpMode {
                 shooter.intakeOn(0.8);
                 shooter.flywheelOn(targetVelocity);
                 follower.followPath(Shoot1, true);
-                setPathState(PathState.toCollect2);
+                setPathState(PathState.Finished);
                 break;
 
             case toCollect2:
@@ -233,7 +233,7 @@ public class AutoTest extends OpMode {
 
         Collect2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        new Pose(48.000, 100.000),
+                        new Pose(48.000, 108.000),
                         new Pose(51.650, 44.794),
                         new Pose(31.444, 64.000),
                         new Pose(9.486, 59.290)))
@@ -245,13 +245,13 @@ public class AutoTest extends OpMode {
                         new Pose(9.486, 59.290),
                         new Pose(58.341, 56.907),
                         new Pose(47.350, 102.215),
-                        new Pose(48, 100)))
+                        new Pose(47.776, 108.112)))
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
                 .build();
 
         GateCollect1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        new Pose(48, 100),
+                        new Pose(47.776, 108.112),
                         new Pose(51.794, 58.037),
                         new Pose(13.121, 61.963)))
                 .setConstantHeadingInterpolation(Math.toRadians(140))
@@ -261,13 +261,13 @@ public class AutoTest extends OpMode {
                 .addPath(new BezierCurve(
                         new Pose(13.121, 61.963),
                         new Pose(57.551, 62.850),
-                        new Pose(48, 100)))
+                        new Pose(47.776, 108.112)))
                 .setConstantHeadingInterpolation(Math.toRadians(140))
                 .build();
 
         GateCollect2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        new Pose(48, 100),
+                        new Pose(47.776, 108.112),
                         new Pose(51.794, 58.037),
                         new Pose(13.121, 61.963)))
                 .setConstantHeadingInterpolation(Math.toRadians(140))
@@ -277,13 +277,13 @@ public class AutoTest extends OpMode {
                 .addPath(new BezierCurve(
                         new Pose(13.121, 61.963),
                         new Pose(57.551, 62.850),
-                        new Pose(48, 100)))
+                        new Pose(47.776, 108.112)))
                 .setConstantHeadingInterpolation(Math.toRadians(140))
                 .build();
 
         Collect3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        new Pose(48, 100),
+                        new Pose(47.776, 108.112),
                         new Pose(51.187, 16.285),
                         new Pose(40.561, 39.818),
                         new Pose(9.047, 35.019)))
@@ -294,13 +294,13 @@ public class AutoTest extends OpMode {
                 .addPath(new BezierCurve(
                         new Pose(9.047, 35.019),
                         new Pose(55.897, 71.528),
-                        new Pose(48, 100)))
+                        new Pose(47.776, 108.112)))
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
                 .build();
 
         Collect1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        new Pose(48, 100),
+                        new Pose(47.776, 108.112),
                         new Pose(53.453, 80.995),
                         new Pose(15.243, 83.654)))
                 .setConstantHeadingInterpolation(Math.toRadians(180))
@@ -309,10 +309,10 @@ public class AutoTest extends OpMode {
         Shoot6 = follower.pathBuilder()
                 .addPath(new BezierLine(
                         new Pose(15.243, 83.654),
-                        new Pose(48, 100)))
+                        new Pose(47.776, 108.112)))
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
                 .build();
-        }
+    }
 
 
     public void setPathState(PathState newState) {
