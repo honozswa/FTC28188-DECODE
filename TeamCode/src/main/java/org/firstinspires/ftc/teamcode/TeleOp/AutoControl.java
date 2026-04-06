@@ -12,6 +12,11 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.mechanism.Webcam;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+
+import java.util.Arrays;
+
 
 @TeleOp(name = "AutoControl")
 public class AutoControl extends LinearOpMode {
@@ -21,6 +26,7 @@ public class AutoControl extends LinearOpMode {
     DcMotor intakeMotor;
     Servo HoodServo, HoodServo2, GateServo;
     Follower follower;
+    private final Webcam webcam = new Webcam();
 
     // Drivetrain
     double targetX = 0, targetY = 0, targetTurn = 0;
@@ -50,11 +56,24 @@ public class AutoControl extends LinearOpMode {
     double velOffset = 100;
     boolean autoShooterEnabled = false;
 
+    // Camera Variables
+    int AprilTagsId = 20; // blue goal
+    double kP = 0.002;
+    double CamError = 0;
+    double lastCamError = 0;
+    double goalX = 0;
+    double angleTolerance = 0.4;
+    double kD = 0.0001;
+    double curTime = 0;
+    double lastTime = 0;
+
     @Override
     public void runOpMode() {
 
         follower = org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(36, 135.5, Math.toRadians(180)));
+
+        webcam.init(hardwareMap, telemetry);
 
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
@@ -102,9 +121,14 @@ public class AutoControl extends LinearOpMode {
 
         waitForStart();
 
+        resetRuntime();
+        curTime = getRuntime();
+
         while (opModeIsActive()) {
 
             follower.update();
+            webcam.update();
+            AprilTagDetection id = webcam.getTagBySpecificId(AprilTagsId);
 
             if (gamepad2.xWasPressed()) {
                 autoShooterEnabled = !autoShooterEnabled;
@@ -143,7 +167,7 @@ public class AutoControl extends LinearOpMode {
                 }
             } else {
                 manualDrive();
-                aimBot();
+                FusionAim(id);
                 applyDrive();
             }
 
@@ -299,6 +323,41 @@ public class AutoControl extends LinearOpMode {
             }
         }
     }
+
+    public void FusionAim(AprilTagDetection id) {
+        if (gamepad1.left_trigger > 0.5) {
+            if (id != null) {
+                CamError = goalX - id.ftcPose.bearing;
+
+                if (Math.abs(CamError) < angleTolerance) {
+                    currentTurn = 0;
+                } else {
+                    double pTerm = CamError * kP;
+
+                    curTime = getRuntime();
+                    double dT = curTime - lastTime;
+                    double dTerm = ((CamError - lastCamError) / dT) * kD;
+
+                    currentTurn = Range.clip(pTerm + dTerm, -0.4,0.4);
+
+                    lastCamError = CamError;
+                    lastTime = curTime;
+                }
+            } else {
+                Pose robotPose = follower.getPose();
+                double targetHeading = getAngleToGoal(robotPose);
+                double error = angleWrap(robotPose.getHeading() - targetHeading);
+                double kP = 1;
+                currentTurn = Range.clip(error * kP, -1, 1);
+                // stop oscillation
+                if (Math.abs(error) < Math.toRadians(15)) {
+                    currentTurn = 0;
+                }
+            }
+        }
+    }
+
+
 
     public void stopDrive() {
         leftFront.setPower(0);

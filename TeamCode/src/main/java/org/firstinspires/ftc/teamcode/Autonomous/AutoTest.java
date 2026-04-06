@@ -33,14 +33,12 @@ public class AutoTest extends OpMode {
         toShoot1,
         toCollect2,
         toShoot2,
-        toGateCollect1,
+        toRampCollect,
         toShoot3,
-        toGateCollect2,
+        toCollect1,
         toShoot4,
         toCollect3,
         toShoot5,
-        toCollect1,
-        toShoot6,
         Finished,
         Idle
     }
@@ -114,17 +112,17 @@ public class AutoTest extends OpMode {
             case toShoot2:
                 if (!follower.isBusy()) {
                     follower.followPath(Shoot2, true);
-                    setPathState(PathState.toGateCollect1);
+                    setPathState(PathState.toRampCollect);
                 }
                 break;
 
-            case toGateCollect1:
+            case toRampCollect:
                 if (!follower.isBusy()) {
                     if (!shotsTriggered) {
                         shooter.fireShot();
                         shotsTriggered = true;
                     } else if (!shooter.isBusy()) {
-                        follower.followPath(GateCollect1);
+                        follower.followPath(RampCollect);
                         setPathState(PathState.toShoot3);
                     }
                 }
@@ -137,13 +135,13 @@ public class AutoTest extends OpMode {
                 }
                 break;
 
-            case toGateCollect2:
+            case toCollect1:
                 if (!follower.isBusy()) {
                     if (!shotsTriggered) {
                         shooter.fireShot();
                         shotsTriggered = true;
                     } else if (!shooter.isBusy()) {
-                        follower.followPath(GateCollect2);
+                        follower.followPath(Collect1);
                         setPathState(PathState.toShoot4);
                     }
                 }
@@ -172,27 +170,7 @@ public class AutoTest extends OpMode {
             case toShoot5:
                 if (!follower.isBusy()) {
                     follower.followPath(Shoot5, true);
-                    setPathState(PathState.toCollect1);
-                }
-                break;
-
-            case toCollect1:
-                if (!follower.isBusy()) {
-                    if (!shotsTriggered) {
-                        shooter.fireShot();
-                        shotsTriggered = true;
-                    } else if (!shooter.isBusy()) {
-                        follower.followPath(Collect1);
-                        setPathState(PathState.toShoot6);
-                    }
-                }
-                break;
-
-            case toShoot6:
-                if (!follower.isBusy()) {
-                    follower.followPath(Shoot6, true);
                     setPathState(PathState.Finished);
-
                 }
                 break;
 
@@ -210,18 +188,7 @@ public class AutoTest extends OpMode {
     }
 
     // PathChain
-    public PathChain Shoot1;
-    public PathChain Collect2;
-    public PathChain Shoot2;
-    public PathChain GateCollect1;
-    public PathChain Shoot3;
-    public PathChain GateCollect2;
-    public PathChain Shoot4;
-    public PathChain Collect3;
-    public PathChain Shoot5;
-    public PathChain Collect1;
-    public PathChain Shoot6;
-
+    public PathChain Shoot1, Collect2, Shoot2, RampCollect, Shoot3, Collect1, Shoot4, Collect3, Shoot5;
     public void buildPaths() {
 
         Shoot1 = follower.pathBuilder()
@@ -233,85 +200,72 @@ public class AutoTest extends OpMode {
 
         Collect2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        new Pose(48.000, 100.000),
-                        new Pose(51.650, 44.794),
-                        new Pose(31.444, 64.000),
-                        new Pose(9.486, 59.290)))
+                                new Pose(48.000, 100.000),
+                                new Pose(51.000, 48.000),
+                                new Pose(25.000, 62.000),
+                                new Pose(9.500, 60.000)))
                 .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         Shoot2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        new Pose(9.486, 59.290),
-                        new Pose(58.341, 56.907),
-                        new Pose(47.350, 102.215),
-                        new Pose(48, 100)))
+                                new Pose(9.500, 60.000),
+                                new Pose(46.000, 64.000),
+                                new Pose(50.000, 85.000),
+                                new Pose(48.000, 100.000)))
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
                 .build();
 
-        GateCollect1 = follower.pathBuilder()
+        RampCollect = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        new Pose(48, 100),
-                        new Pose(51.794, 58.037),
-                        new Pose(13.121, 61.963)))
+                                new Pose(48.000, 100.000),
+                                new Pose(53.000, 63.000),
+                                new Pose(17.000, 62.000),
+                                new Pose(9.000, 68.000),
+                                new Pose(11.000, 53.000)))
                 .setConstantHeadingInterpolation(Math.toRadians(140))
                 .build();
 
         Shoot3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        new Pose(13.121, 61.963),
-                        new Pose(57.551, 62.850),
-                        new Pose(48, 100)))
+                                new Pose(11.000, 53.000),
+                                new Pose(52.000, 70.000),
+                                new Pose(48.000, 100.000)))
                 .setConstantHeadingInterpolation(Math.toRadians(140))
-                .build();
-
-        GateCollect2 = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        new Pose(48, 100),
-                        new Pose(51.794, 58.037),
-                        new Pose(13.121, 61.963)))
-                .setConstantHeadingInterpolation(Math.toRadians(140))
-                .build();
-
-        Shoot4 = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        new Pose(13.121, 61.963),
-                        new Pose(57.551, 62.850),
-                        new Pose(48, 100)))
-                .setConstantHeadingInterpolation(Math.toRadians(140))
-                .build();
-
-        Collect3 = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        new Pose(48, 100),
-                        new Pose(51.187, 16.285),
-                        new Pose(40.561, 39.818),
-                        new Pose(9.047, 35.019)))
-                .setConstantHeadingInterpolation(Math.toRadians(180))
-                .build();
-
-        Shoot5 = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        new Pose(9.047, 35.019),
-                        new Pose(55.897, 71.528),
-                        new Pose(48, 100)))
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
                 .build();
 
         Collect1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        new Pose(48, 100),
-                        new Pose(53.453, 80.995),
-                        new Pose(15.243, 83.654)))
+                                new Pose(48.000, 100.000),
+                                new Pose(44.000, 78.000),
+                                new Pose(33.000, 86.000),
+                                new Pose(15.000, 84.000)))
                 .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
-        Shoot6 = follower.pathBuilder()
+        Shoot4 = follower.pathBuilder()
                 .addPath(new BezierLine(
-                        new Pose(15.243, 83.654),
-                        new Pose(48, 100)))
+                                new Pose(15.000, 84.000),
+                                new Pose(48.000, 100.000)))
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
                 .build();
+
+        Collect3 = follower.pathBuilder()
+                .addPath(new BezierCurve(
+                                new Pose(48.000, 100.000),
+                                new Pose(45.000, 27.000),
+                                new Pose(53.000, 37.000),
+                                new Pose(9.000, 35.000)))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
+                .build();
+
+        Shoot5 = follower.pathBuilder()
+                .addPath(new BezierLine(
+                                new Pose(9.000, 35.000),
+                                new Pose(48.000, 100.000)))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
+                .build();
+
         }
 
 

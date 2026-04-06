@@ -226,8 +226,8 @@ public class ShotMechanicTest extends OpMode {
 
         Shoot1 = follower.pathBuilder()
                 .addPath(new BezierLine(
-                        new Pose(36.000, 135.500),
-                        new Pose(48.000, 100.000)))
+                                new Pose(36.000, 135.500),
+                                new Pose(48.000, 100.000)))
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
                 .build();
 
