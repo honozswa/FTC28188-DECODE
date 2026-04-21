@@ -7,6 +7,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.bylazar.telemetry.PanelsTelemetry;
 
+import org.firstinspires.ftc.teamcode.Constants.PoseConstant;
 import org.firstinspires.ftc.teamcode.mechanism.Flywheel;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -16,9 +17,9 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.geometry.Pose;
 
-@Autonomous(name = "Auto Test", group = "Test")
+@Autonomous(name = "Blue Close Auto")
 @Configurable
-public class AutoTest extends OpMode {
+public class BlueCloseAuto extends OpMode {
 
     private TelemetryManager panelsTelemetry;
     public Follower follower;
@@ -27,8 +28,7 @@ public class AutoTest extends OpMode {
     // ------ Flywheel Setup ------- //
     private Flywheel shooter = new Flywheel();
     private boolean shotsTriggered = false;
-    private double targetVelocity = 1200;
-
+    private double targetVelocity = 1150;
     private enum PathState {
         toShoot1,
         toCollect2,
@@ -40,10 +40,10 @@ public class AutoTest extends OpMode {
         toCollect3,
         toShoot5,
         Finished,
+        toPark,
         Idle
     }
     PathState pathState;
-    private final Pose startPose = new Pose(36, 135.5, Math.toRadians(180)); // Start Pose of our robot.
 
     @Override
     public void init() {
@@ -54,7 +54,7 @@ public class AutoTest extends OpMode {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(startPose);
+        follower.setStartingPose(PoseConstant.BlueAutoStartPose);
 
         // init other mech
         shooter.init(hardwareMap);
@@ -129,9 +129,9 @@ public class AutoTest extends OpMode {
                 break;
 
             case toShoot3:
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 2) {
                     follower.followPath(Shoot3, true);
-                    setPathState(PathState.toCollect3);
+                    setPathState(PathState.toCollect1);
                 }
                 break;
 
@@ -180,15 +180,22 @@ public class AutoTest extends OpMode {
                         shooter.fireShot();
                         shotsTriggered = true;
                     } else if (!shooter.isBusy()) {
-                        setPathState(PathState.Idle);
+                        setPathState(PathState.toPark);
                     }
+                }
+                break;
+
+            case toPark:
+                if (!follower.isBusy()) {
+                    follower.followPath(Park, true);
+                    setPathState(PathState.Idle);
                 }
                 break;
         }
     }
 
     // PathChain
-    public PathChain Shoot1, Collect2, Shoot2, RampCollect, Shoot3, Collect1, Shoot4, Collect3, Shoot5;
+    public PathChain Shoot1, Collect2, Shoot2, RampCollect, Shoot3, Collect1, Shoot4, Collect3, Shoot5, Park;
     public void buildPaths() {
 
         Shoot1 = follower.pathBuilder()
@@ -264,6 +271,13 @@ public class AutoTest extends OpMode {
                                 new Pose(9.000, 35.000),
                                 new Pose(48.000, 100.000)))
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(140))
+                .build();
+
+        Park = follower.pathBuilder()
+                .addPath(new BezierLine(
+                        new Pose(48.000, 100.000),
+                        new Pose(20.000, 80.000)))
+                .setLinearHeadingInterpolation(Math.toRadians(140), Math.toRadians(180))
                 .build();
 
         }

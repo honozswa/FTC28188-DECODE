@@ -28,7 +28,7 @@ public class Flywheel {
     private double ShotTime = 0.8;
 
     // Hood
-    double HoodPosition1 = 0.3;
+    double HoodPosition1 = 0.25;
     double HoodPosition2 = 1 - HoodPosition1;
 
     public void init(HardwareMap hwMap) {

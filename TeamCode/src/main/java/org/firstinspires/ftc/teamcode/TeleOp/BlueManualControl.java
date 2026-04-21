@@ -12,15 +12,19 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.mechanism.Webcam;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
-@TeleOp(name = "ManualControl")
-public class ManualControl extends LinearOpMode {
+
+@TeleOp(name = "Blue-ManualControl")
+public class BlueManualControl extends LinearOpMode {
 
     DcMotor leftFront, rightFront, leftBack, rightBack;
     DcMotorEx shootMotor, shootMotor2, gateMotor;
     DcMotor intakeMotor;
     Servo HoodServo, HoodServo2, GateServo;
     Follower follower;
+    private final Webcam webcam = new Webcam();
 
     // Drivetrain
     double targetX = 0, targetY = 0, targetTurn = 0;
@@ -52,8 +56,21 @@ public class ManualControl extends LinearOpMode {
     public static final Pose SHOOT_POSE = new Pose(55, 88, Math.toRadians(139.5));
     boolean autoDriving = false;
 
+    // Camera Variables
+    int AprilTagsId = 20; // blue goal
+    double kP = 0.0210;
+    double CamError = 0;
+    double lastCamError = 0;
+    double goalX = 0;
+    double angleTolerance = 0.4;
+    double kD = 0.0005;
+    double curTime = 0;
+    double lastTime = 0;
+
     @Override
     public void runOpMode() {
+
+        webcam.init(hardwareMap, telemetry);
 
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
@@ -107,6 +124,8 @@ public class ManualControl extends LinearOpMode {
         while (opModeIsActive()) {
 
             follower.update();
+            webcam.update();
+            AprilTagDetection id = webcam.getTagBySpecificId(AprilTagsId);
 
             /* =====================
                AUTO DRIVE
@@ -139,7 +158,7 @@ public class ManualControl extends LinearOpMode {
                 }
             } else {
                 manualDrive();
-                aimBot();
+                FusionAim(id);
                 applyDrive();
             }
 
@@ -312,6 +331,39 @@ public class ManualControl extends LinearOpMode {
             // stop oscillation
             if (Math.abs(error) < Math.toRadians(0.05)) {
                 currentTurn = 0;
+            }
+        }
+    }
+
+    public void FusionAim(AprilTagDetection id) {
+        if (gamepad1.left_trigger > 0.5) {
+            if (id != null) {
+                CamError = goalX - id.ftcPose.bearing;
+
+                if (Math.abs(CamError) < angleTolerance) {
+                    currentTurn = 0;
+                } else {
+                    double pTerm = CamError * kP;
+
+                    curTime = getRuntime();
+                    double dT = curTime - lastTime;
+                    double dTerm = ((CamError - lastCamError) / dT) * kD;
+
+                    currentTurn = Range.clip(pTerm + dTerm, -0.4,0.4);
+
+                    lastCamError = CamError;
+                    lastTime = curTime;
+                }
+            } else {
+                Pose robotPose = follower.getPose();
+                double targetHeading = getAngleToGoal(robotPose);
+                double error = angleWrap(robotPose.getHeading() - targetHeading);
+                double kP = 1;
+                currentTurn = Range.clip(error * kP, -1, 1);
+                // stop oscillation
+                if (Math.abs(error) < Math.toRadians(15)) {
+                    currentTurn = 0;
+                }
             }
         }
     }

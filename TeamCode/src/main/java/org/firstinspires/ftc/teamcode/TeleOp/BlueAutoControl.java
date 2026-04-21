@@ -12,14 +12,14 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.Constants.CameraConstant;
+import org.firstinspires.ftc.teamcode.Constants.PoseConstant;
 import org.firstinspires.ftc.teamcode.mechanism.Webcam;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
-import java.util.Arrays;
 
-
-@TeleOp(name = "AutoControl")
-public class AutoControl extends LinearOpMode {
+@TeleOp(name = "Blue-AutoControl")
+public class BlueAutoControl extends LinearOpMode {
 
     DcMotor leftFront, rightFront, leftBack, rightBack;
     DcMotorEx shootMotor, shootMotor2, gateMotor;
@@ -48,22 +48,15 @@ public class AutoControl extends LinearOpMode {
     double HoodPosition2 = 1 - HoodPosition1;
 
     // Pose
-    public static final Pose GOAL = new Pose(0 , 135);
-    public static final Pose SHOOT_POSE = new Pose(55, 88, Math.toRadians(139.5));
     boolean autoDriving = false;
     long lastShooterUpdate = 0;
     double distanceFiltered = 60; // starting guess (any reasonable distance)
-    double velOffset = 100;
+    double velOffset = 50;
     boolean autoShooterEnabled = false;
 
     // Camera Variables
-    int AprilTagsId = 20; // blue goal
-    double kP = 0.002;
     double CamError = 0;
     double lastCamError = 0;
-    double goalX = 0;
-    double angleTolerance = 0.4;
-    double kD = 0.0001;
     double curTime = 0;
     double lastTime = 0;
 
@@ -128,7 +121,7 @@ public class AutoControl extends LinearOpMode {
 
             follower.update();
             webcam.update();
-            AprilTagDetection id = webcam.getTagBySpecificId(AprilTagsId);
+            AprilTagDetection id = webcam.getTagBySpecificId(CameraConstant.BlueAprilTagsId);
 
             if (gamepad2.xWasPressed()) {
                 autoShooterEnabled = !autoShooterEnabled;
@@ -202,8 +195,8 @@ public class AutoControl extends LinearOpMode {
 
     public double getAngleToGoal(Pose robotPose) {
 
-        double dx = GOAL.getX() - robotPose.getX();
-        double dy = GOAL.getY() - robotPose.getY();
+        double dx = PoseConstant.BLUE_GOAL.getX() - robotPose.getX();
+        double dy = PoseConstant.BLUE_GOAL.getY() - robotPose.getY();
 
         return Math.atan2(dy, dx);
     }
@@ -223,11 +216,11 @@ public class AutoControl extends LinearOpMode {
         PathChain shootPath = follower.pathBuilder()
                 .addPath(new BezierLine(
                         follower.getPose(),
-                        SHOOT_POSE
+                        PoseConstant.BLUE_SHOOT_POSE
                 ))
                 .setLinearHeadingInterpolation(
                         follower.getPose().getHeading(),
-                        SHOOT_POSE.getHeading()
+                        PoseConstant.BLUE_SHOOT_POSE.getHeading()
                 )
                 .build();
 
@@ -292,22 +285,18 @@ public class AutoControl extends LinearOpMode {
         // =======================
         // Hood
         // =======================
-        if (!gamepad2.left_bumper) {   // allow manual only when LB not held
-
-            if (gamepad2.dpad_up) {
-                HoodPosition1 += 0.01;
-            }
-            if (gamepad2.dpad_down) {
-                HoodPosition1 -= 0.01;
-            }
-
-            HoodPosition1 = Range.clip(HoodPosition1, 0.15, 0.4);
-
-            HoodPosition2 = 1 - HoodPosition1;
-
-            HoodServo.setPosition(HoodPosition1);
-            HoodServo2.setPosition(HoodPosition2);
+        if (gamepad2.dpad_up) {
+            HoodPosition1 += 0.01;
         }
+        if (gamepad2.dpad_down) {
+            HoodPosition1 -= 0.01;
+        }
+        HoodPosition1 = Range.clip(HoodPosition1, 0.15, 0.4);
+        HoodPosition2 = 1 - HoodPosition1;
+
+        HoodServo.setPosition(HoodPosition1);
+        HoodServo2.setPosition(HoodPosition2);
+
     }
 
     public void aimBot() {
@@ -327,16 +316,16 @@ public class AutoControl extends LinearOpMode {
     public void FusionAim(AprilTagDetection id) {
         if (gamepad1.left_trigger > 0.5) {
             if (id != null) {
-                CamError = goalX - id.ftcPose.bearing;
+                CamError = CameraConstant.goalX - id.ftcPose.bearing;
 
-                if (Math.abs(CamError) < angleTolerance) {
+                if (Math.abs(CamError) < CameraConstant.angleTolerance) {
                     currentTurn = 0;
                 } else {
-                    double pTerm = CamError * kP;
+                    double pTerm = CamError * CameraConstant.kP;
 
                     curTime = getRuntime();
                     double dT = curTime - lastTime;
-                    double dTerm = ((CamError - lastCamError) / dT) * kD;
+                    double dTerm = ((CamError - lastCamError) / dT) * CameraConstant.kD;
 
                     currentTurn = Range.clip(pTerm + dTerm, -0.4,0.4);
 
@@ -381,8 +370,8 @@ public class AutoControl extends LinearOpMode {
 
     public double getDistanceToGoal(Pose robotPose) {
 
-        double dx = GOAL.getX() - robotPose.getX();
-        double dy = GOAL.getY() - robotPose.getY();
+        double dx = PoseConstant.BLUE_GOAL.getX() - robotPose.getX();
+        double dy = PoseConstant.BLUE_GOAL.getY() - robotPose.getY();
 
         return Math.sqrt(dx*dx + dy*dy);
     }
