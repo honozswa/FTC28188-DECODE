@@ -1,33 +1,30 @@
-package org.firstinspires.ftc.teamcode.TeleOp;
+package org.firstinspires.ftc.teamcode.TeleOp.Tuner;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.Constants.CameraConstant;
-import org.firstinspires.ftc.teamcode.Constants.PoseConstant;
-import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 import org.firstinspires.ftc.teamcode.mechanism.Webcam;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 
-@TeleOp(name = "Blue-AutoControl")
-public class BlueAutoControl extends LinearOpMode {
+@TeleOp(name = "FlywheelHoodTuner")
+public class FlywheelHoodTuner extends LinearOpMode {
 
     DcMotor leftFront, rightFront, leftBack, rightBack;
     DcMotorEx shootMotor, shootMotor2, gateMotor;
     DcMotor intakeMotor;
     Servo HoodServo, HoodServo2, GateServo;
     Follower follower;
-    private final Webcam webcam = new Webcam();
+//    private final Webcam webcam = new Webcam();
 
     // Drivetrain
     double targetX = 0, targetY = 0, targetTurn = 0;
@@ -35,12 +32,17 @@ public class BlueAutoControl extends LinearOpMode {
     double rampRate = 1;
 
     // Gate
-    final double ClosePos = 0.3;
+    final double ClosePos = 0.45;
     final double OpenPos = 0.0;
 
     // Flywheel Vel
+    double ZERO_VELOCITY = 0;
+    double CLOSE_VELOCITY = 1100;
+    double MID_VELOCITY = 1700;
     double targetVelocity = 0;
-    double velOffset = ShooterConstant.FlywheelOffset;
+    final double VELOCITY_STEP = 50;
+    boolean lastUp = false;
+    boolean lastDown = false;
 
     // Intake
     private boolean intakeOn = false;
@@ -50,26 +52,25 @@ public class BlueAutoControl extends LinearOpMode {
     double HoodPosition2 = 1 - HoodPosition1;
 
     // Pose
-    private static final Pose GOAL = PoseConstant.BLUE_GOAL;
+    public static final Pose GOAL = new Pose(-5 , 138.67);
+    public static final Pose SHOOT_POSE = new Pose(55, 88, Math.toRadians(139.5));
     boolean autoDriving = false;
-    long lastShooterUpdate = 0;
-    double distanceFiltered = 60; // starting guess (any reasonable distance)
-
-    boolean autoShooterEnabled = false;
 
     // Camera Variables
+    int AprilTagsId = 20; // blue goal
+    double kP = 0.0210;
     double CamError = 0;
     double lastCamError = 0;
+    double goalX = 0;
+    double angleTolerance = 0.4;
+    double kD = 0.0005;
     double curTime = 0;
     double lastTime = 0;
 
     @Override
     public void runOpMode() {
 
-        follower = org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(36, 135.5, Math.toRadians(180)));
-
-        webcam.init(hardwareMap, telemetry);
+//        webcam.init(hardwareMap, telemetry);
 
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
@@ -95,13 +96,16 @@ public class BlueAutoControl extends LinearOpMode {
         shootMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        PIDFCoefficients shooterPIDF = new PIDFCoefficients(150 , 0, 0, 17.0390);
+        PIDFCoefficients shooterPIDF = new PIDFCoefficients(150, 0, 0.01, 17.0390);
         shootMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
         shootMotor2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
 
         HoodServo.setPosition(HoodPosition1);
         HoodServo2.setPosition(HoodPosition2);
         GateServo.setPosition(ClosePos);
+
+        follower = org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower(hardwareMap);
+        follower.setStartingPose(new Pose(36, 135.5, Math.toRadians(180)));
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -117,20 +121,11 @@ public class BlueAutoControl extends LinearOpMode {
 
         waitForStart();
 
-        resetRuntime();
-        curTime = getRuntime();
-
         while (opModeIsActive()) {
 
             follower.update();
-            webcam.update();
-            AprilTagDetection id = webcam.getTagBySpecificId(CameraConstant.BlueAprilTagsId);
-
-            if (gamepad2.xWasPressed()) {
-                autoShooterEnabled = !autoShooterEnabled;
-            }
-
-            autoShooter();
+//            webcam.update();
+//            AprilTagDetection id = webcam.getTagBySpecificId(AprilTagsId);
 
             /* =====================
                AUTO DRIVE
@@ -163,7 +158,7 @@ public class BlueAutoControl extends LinearOpMode {
                 }
             } else {
                 manualDrive();
-                FusionAim(id);
+//                FusionAim(id);
                 applyDrive();
             }
 
@@ -219,11 +214,11 @@ public class BlueAutoControl extends LinearOpMode {
         PathChain shootPath = follower.pathBuilder()
                 .addPath(new BezierLine(
                         follower.getPose(),
-                        PoseConstant.BLUE_SHOOT_POSE
+                        SHOOT_POSE
                 ))
                 .setLinearHeadingInterpolation(
                         follower.getPose().getHeading(),
-                        PoseConstant.BLUE_SHOOT_POSE.getHeading()
+                        SHOOT_POSE.getHeading()
                 )
                 .build();
 
@@ -257,6 +252,26 @@ public class BlueAutoControl extends LinearOpMode {
         // =======================
         // Flywheel
         // =======================
+        if (gamepad1.xWasPressed()) {
+            targetVelocity = CLOSE_VELOCITY;
+        }
+        if (gamepad1.yWasPressed()) {
+            targetVelocity = MID_VELOCITY;
+        }
+        if (gamepad1.bWasPressed()) {
+            targetVelocity = ZERO_VELOCITY;
+        }
+        if (gamepad1.dpad_up && !lastUp) {
+            targetVelocity += VELOCITY_STEP;
+        }
+        if (gamepad1.dpad_down && !lastDown) {
+            targetVelocity -= VELOCITY_STEP;
+        }
+
+        targetVelocity = Math.max(0, targetVelocity);
+
+        lastUp = gamepad1.dpad_up;
+        lastDown = gamepad1.dpad_down;
 
         shootMotor.setVelocity(targetVelocity);
         shootMotor2.setVelocity(targetVelocity);
@@ -267,15 +282,16 @@ public class BlueAutoControl extends LinearOpMode {
         if (gamepad1.aWasPressed()) {
             intakeOn = !intakeOn;
         }
-
         if (gamepad1.right_bumper) {
             GateServo.setPosition(OpenPos);
+            shootMotor.setVelocity(targetVelocity + 200);
+            shootMotor2.setVelocity(targetVelocity + 200);
             intakeMotor.setPower(0.65);
             gateMotor.setPower(1);
         } else if (gamepad1.right_trigger > 0.5 || gamepad2.right_trigger > 0.5) {
             intakeMotor.setPower(1);
             GateServo.setPosition(ClosePos);
-        } else if (gamepad1.x) {
+        } else if (gamepad1.dpad_left) {
             GateServo.setPosition(OpenPos);
             intakeMotor.setPower(1);
             gateMotor.setPower(0.6);
@@ -294,62 +310,63 @@ public class BlueAutoControl extends LinearOpMode {
         if (gamepad2.dpad_down) {
             HoodPosition1 -= 0.01;
         }
-        HoodPosition1 = Range.clip(HoodPosition1, 0.15, 0.4);
+
+        HoodPosition1 = Range.clip(HoodPosition1, 0, 1);
+
         HoodPosition2 = 1 - HoodPosition1;
 
         HoodServo.setPosition(HoodPosition1);
         HoodServo2.setPosition(HoodPosition2);
-
     }
 
-    public void aimBot() {
-        if (gamepad1.left_trigger > 0.5) {
-            Pose robotPose = follower.getPose();
-            double targetHeading = getAngleToGoal(robotPose);
-            double error = angleWrap(robotPose.getHeading() - targetHeading);
-            double kP = 1;
-            currentTurn = Range.clip(error * kP, -1, 1);
-            // stop oscillation
-            if (Math.abs(error) < Math.toRadians(0.05)) {
-                currentTurn = 0;
-            }
-        }
-    }
-
-    public void FusionAim(AprilTagDetection id) {
-        if (gamepad1.left_trigger > 0.5) {
-            if (id != null) {
-                CamError = CameraConstant.goalX - id.ftcPose.bearing;
-
-                if (Math.abs(CamError) < CameraConstant.angleTolerance) {
-                    currentTurn = 0;
-                } else {
-                    double pTerm = CamError * CameraConstant.kP;
-
-                    curTime = getRuntime();
-                    double dT = curTime - lastTime;
-                    double dTerm = ((CamError - lastCamError) / dT) * CameraConstant.kD;
-
-                    currentTurn = Range.clip(pTerm + dTerm, -0.4,0.4);
-
-                    lastCamError = CamError;
-                    lastTime = curTime;
-                }
-            } else {
-                Pose robotPose = follower.getPose();
-                double targetHeading = getAngleToGoal(robotPose);
-                double error = angleWrap(robotPose.getHeading() - targetHeading);
-                double kP = 1;
-                currentTurn = Range.clip(error * kP, -1, 1);
-                // stop oscillation
-                if (Math.abs(error) < Math.toRadians(15)) {
-                    currentTurn = 0;
-                }
-            }
-        }
-    }
-
-
+//    public void aimBot() {
+//        double turnPower = currentTurn;
+//
+//        if (gamepad1.left_trigger > 0.5) {
+//            Pose robotPose = follower.getPose();
+//            double targetHeading = getAngleToGoal(robotPose);
+//            double error = angleWrap(robotPose.getHeading() - targetHeading);
+//            double kP = 1;
+//            currentTurn = Range.clip(error * kP, -1, 1);
+//            // stop oscillation
+//            if (Math.abs(error) < Math.toRadians(0.05)) {
+//                currentTurn = 0;
+//            }
+//        }
+//    }
+//
+//    public void FusionAim(AprilTagDetection id) {
+//        if (gamepad1.left_trigger > 0.5) {
+//            if (id != null) {
+//                CamError = goalX - id.ftcPose.bearing;
+//
+//                if (Math.abs(CamError) < angleTolerance) {
+//                    currentTurn = 0;
+//                } else {
+//                    double pTerm = CamError * kP;
+//
+//                    curTime = getRuntime();
+//                    double dT = curTime - lastTime;
+//                    double dTerm = ((CamError - lastCamError) / dT) * kD;
+//
+//                    currentTurn = Range.clip(pTerm + dTerm, -0.4,0.4);
+//
+//                    lastCamError = CamError;
+//                    lastTime = curTime;
+//                }
+//            } else {
+//                Pose robotPose = follower.getPose();
+//                double targetHeading = getAngleToGoal(robotPose);
+//                double error = angleWrap(robotPose.getHeading() - targetHeading);
+//                double kP = 1;
+//                currentTurn = Range.clip(error * kP, -1, 1);
+//                // stop oscillation
+//                if (Math.abs(error) < Math.toRadians(15)) {
+//                    currentTurn = 0;
+//                }
+//            }
+//        }
+//    }
 
     public void stopDrive() {
         leftFront.setPower(0);
@@ -377,56 +394,6 @@ public class BlueAutoControl extends LinearOpMode {
         double dy = GOAL.getY() - robotPose.getY();
 
         return Math.sqrt(dx*dx + dy*dy);
-    }
-
-    public double getFlywheelVelocity(double distance) {
-        return 776.27374 * Math.pow(1.00522, distance) + velOffset;
-    }
-
-    public double getHoodPosition(double distance) {
-        return 0.00000113108 * Math.pow(distance, 3)
-                - 0.000328854 * Math.pow(distance, 2)
-                + 0.0321784 * distance
-                - 0.750827;
-    }
-
-    public void autoShooter() {
-
-        if (!autoShooterEnabled) {
-            targetVelocity = 0;
-        } else if (autoShooterEnabled) {
-
-            Pose robotPose = follower.getPose();
-
-            double rawDistance = getDistanceToGoal(robotPose);
-            distanceFiltered = 0.8 * distanceFiltered
-                    + 0.2 * rawDistance;
-
-            // prevent regression explosion
-            rawDistance = Range.clip(rawDistance, 0, 300);
-
-            double velocity = getFlywheelVelocity(distanceFiltered);
-            double hood = getHoodPosition(distanceFiltered);
-
-            velocity = Range.clip(velocity, 900, 1700);
-            hood = Range.clip(hood, 0.15, 0.4);
-
-            if (System.currentTimeMillis() - lastShooterUpdate > 100) {
-                targetVelocity = velocity;
-                lastShooterUpdate = System.currentTimeMillis();
-            }
-
-            HoodPosition1 = hood;
-            HoodPosition2 = 1 - hood;
-
-            HoodServo.setPosition(HoodPosition1);
-            HoodServo2.setPosition(HoodPosition2);
-
-            telemetry.addData("Raw Distance", rawDistance);
-            telemetry.addData("Filtered Distance", distanceFiltered);
-            telemetry.addData("Auto Vel", velocity);
-            telemetry.addData("Auto Hood", hood);
-        }
     }
 
 }

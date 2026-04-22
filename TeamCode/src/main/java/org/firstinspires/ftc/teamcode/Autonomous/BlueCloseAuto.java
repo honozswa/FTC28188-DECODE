@@ -129,7 +129,7 @@ public class BlueCloseAuto extends OpMode {
                 break;
 
             case toShoot3:
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 2) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 4) {
                     follower.followPath(Shoot3, true);
                     setPathState(PathState.toCollect1);
                 }

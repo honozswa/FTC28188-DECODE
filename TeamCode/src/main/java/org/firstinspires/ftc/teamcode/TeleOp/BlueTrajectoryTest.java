@@ -3,24 +3,27 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathChain;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Constants.CameraConstant;
 import org.firstinspires.ftc.teamcode.Constants.PoseConstant;
 import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
+import org.firstinspires.ftc.teamcode.mechanism.Util;
 import org.firstinspires.ftc.teamcode.mechanism.Webcam;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 
-@TeleOp(name = "Blue-AutoControl")
-public class BlueAutoControl extends LinearOpMode {
+@TeleOp(name = "Blue-TrajectoryTest")
+public class BlueTrajectoryTest extends LinearOpMode {
 
     DcMotor leftFront, rightFront, leftBack, rightBack;
     DcMotorEx shootMotor, shootMotor2, gateMotor;
@@ -35,7 +38,7 @@ public class BlueAutoControl extends LinearOpMode {
     double rampRate = 1;
 
     // Gate
-    final double ClosePos = 0.3;
+    final double ClosePos = 0.45;
     final double OpenPos = 0.0;
 
     // Flywheel Vel
@@ -130,7 +133,8 @@ public class BlueAutoControl extends LinearOpMode {
                 autoShooterEnabled = !autoShooterEnabled;
             }
 
-            autoShooter();
+//            autoShooter();
+            predictTrajectory();
 
             /* =====================
                AUTO DRIVE
@@ -342,9 +346,9 @@ public class BlueAutoControl extends LinearOpMode {
                 double kP = 1;
                 currentTurn = Range.clip(error * kP, -1, 1);
                 // stop oscillation
-                if (Math.abs(error) < Math.toRadians(15)) {
-                    currentTurn = 0;
-                }
+//                if (Math.abs(error) < Math.toRadians(5)) {
+//                    currentTurn = 0;
+//                }
             }
         }
     }
@@ -426,6 +430,42 @@ public class BlueAutoControl extends LinearOpMode {
             telemetry.addData("Filtered Distance", distanceFiltered);
             telemetry.addData("Auto Vel", velocity);
             telemetry.addData("Auto Hood", hood);
+        }
+    }
+
+    private void predictTrajectory() {
+
+        if (!autoShooterEnabled) {
+            targetVelocity = 0;
+        } else if (autoShooterEnabled) {
+
+            double g = ShooterConstant.g;
+            double x = getDistanceToGoal(follower.getPose()) * 0.0254;
+            double y = ShooterConstant.entryHeight;
+            double a = ShooterConstant.entryAngle;
+
+            if (x < 0.1) return;
+
+            double launchAngle = MathFunctions.clamp(Math.atan((2 * y / x) - Math.tan(a)), ShooterConstant.minAngle, ShooterConstant.maxAngle);
+
+            double denominator = (x * Math.tan(launchAngle) - y);
+            if (denominator <= 0.01) return;
+
+            double launchVel = Math.sqrt((g * x * x) / (2 * Math.cos(launchAngle) * Math.cos(launchAngle) * denominator));
+
+            double FlywheelVel = Range.clip(Util.getFlywheelVelocityFromV0(launchVel), 900, 1700);
+            double hoodPos = Range.clip(Util.getHoodServoPosFromAngle(launchAngle), 0.15, 0.5);
+
+            if (System.currentTimeMillis() - lastShooterUpdate > 100) {
+                targetVelocity = FlywheelVel;
+                lastShooterUpdate = System.currentTimeMillis();
+            }
+
+            HoodPosition1 = hoodPos;
+            HoodPosition2 = 1 - hoodPos;
+
+            HoodServo.setPosition(HoodPosition1);
+            HoodServo2.setPosition(HoodPosition2);
         }
     }
 

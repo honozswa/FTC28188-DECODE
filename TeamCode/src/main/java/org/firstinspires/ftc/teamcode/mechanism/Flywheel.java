@@ -23,12 +23,12 @@ public class Flywheel {
     private FlywheelState flywheelState;
 
     // Gate
-    private double ClosePos = 0.3;
+    private double ClosePos = 0.45;
     private double OpenPos = 0.0;
-    private double ShotTime = 0.8;
+    private double ShotTime = 1;
 
     // Hood
-    double HoodPosition1 = 0.25;
+    double HoodPosition1 = 0.31;
     double HoodPosition2 = 1 - HoodPosition1;
 
     public void init(HardwareMap hwMap) {
