@@ -34,9 +34,7 @@ public class BlueTrajectoryTest extends LinearOpMode {
     private final Webcam webcam = new Webcam();
 
     // Drivetrain
-    double targetX = 0, targetY = 0, targetTurn = 0;
-    double currentX = 0, currentY = 0, currentTurn = 0;
-    double rampRate = 1;
+    double forward = 0, strafe = 0, rotate = 0;
 
     // Gate
     final double ClosePos = ShooterConstant.closePos;
@@ -44,7 +42,6 @@ public class BlueTrajectoryTest extends LinearOpMode {
 
     // Flywheel Vel
     double targetVelocity = 0;
-    double velOffset = ShooterConstant.FlywheelOffset;
 
     // Intake
     private boolean intakeOn = false;
@@ -52,15 +49,11 @@ public class BlueTrajectoryTest extends LinearOpMode {
     // Hood
     double HoodPosition1 = ShooterConstant.minServoPos2;
     double HoodPosition2 = 1 - HoodPosition1;
-    double lastHoodPos = 0;
-    double lastLaunchAngle = -999;
 
     // Pose
     private static final Pose GOAL = PoseConstant.BLUE_GOAL;
     boolean autoDriving = false;
     long lastShooterUpdate = 0;
-    double distanceFiltered = 60; // starting guess (any reasonable distance)
-
     boolean autoShooterEnabled = false;
 
     // Camera Variables
@@ -191,31 +184,12 @@ public class BlueTrajectoryTest extends LinearOpMode {
             telemetry.update();
         }
     }
-    private double rampTowardsTarget(double current, double target, double rate) {
-        double delta = target - current;
-        if (Math.abs(delta) > rate) {
-            return current + Math.signum(delta) * rate;
-        } else {
-            return target;
-        }
-    }
-
     public double getAngleToGoal(Pose robotPose) {
 
         double dx = GOAL.getX() - robotPose.getX();
         double dy = GOAL.getY() - robotPose.getY();
 
         return Math.atan2(dy, dx);
-    }
-
-    public double angleWrap(double angle) {
-        while (angle > Math.PI) {
-            angle -= 2 * Math.PI;
-        }
-        while (angle < -Math.PI) {
-            angle += 2 * Math.PI;
-        }
-        return angle;
     }
 
     public void goToShootPose() {
@@ -248,13 +222,9 @@ public class BlueTrajectoryTest extends LinearOpMode {
     }
 
     public void manualDrive() {
-        targetX = gamepad1.left_stick_x;
-        targetY = -gamepad1.left_stick_y;
-        targetTurn = gamepad1.right_stick_x / 1.8;
-
-        currentX = rampTowardsTarget(currentX, targetX, rampRate);
-        currentY = rampTowardsTarget(currentY, targetY, rampRate);
-        currentTurn = rampTowardsTarget(currentTurn, targetTurn, rampRate);
+        forward = -gamepad1.left_stick_y;
+        strafe = gamepad1.left_stick_x;
+        rotate = gamepad1.right_stick_x / 1.8;
     }
 
     public void subSystem() {
@@ -303,27 +273,13 @@ public class BlueTrajectoryTest extends LinearOpMode {
 
     }
 
-    public void aimBot() {
-        if (gamepad1.left_trigger > 0.5) {
-            Pose robotPose = follower.getPose();
-            double targetHeading = getAngleToGoal(robotPose);
-            double error = angleWrap(robotPose.getHeading() - targetHeading);
-            double kP = 1;
-            currentTurn = Range.clip(error * kP, -1, 1);
-            // stop oscillation
-            if (Math.abs(error) < Math.toRadians(0.05)) {
-                currentTurn = 0;
-            }
-        }
-    }
-
     public void FusionAim(AprilTagDetection id) {
         if (gamepad1.left_trigger > 0.5) {
             if (id != null) {
                 CamError = CameraConstant.goalX - id.ftcPose.bearing;
 
                 if (Math.abs(CamError) < CameraConstant.angleTolerance) {
-                    currentTurn = 0;
+                     rotate = 0;
                 } else {
                     double pTerm = CamError * CameraConstant.kP;
 
@@ -331,7 +287,7 @@ public class BlueTrajectoryTest extends LinearOpMode {
                     double dT = curTime - lastTime;
                     double dTerm = ((CamError - lastCamError) / dT) * CameraConstant.kD;
 
-                    currentTurn = Range.clip(pTerm + dTerm, -0.4,0.4);
+                    rotate = Range.clip(pTerm + dTerm, -0.4,0.4);
 
                     lastCamError = CamError;
                     lastTime = curTime;
@@ -339,18 +295,12 @@ public class BlueTrajectoryTest extends LinearOpMode {
             } else {
                 Pose robotPose = follower.getPose();
                 double targetHeading = getAngleToGoal(robotPose);
-                double error = angleWrap(robotPose.getHeading() - targetHeading);
+                double error = Util.angleWrap(robotPose.getHeading() - targetHeading);
                 double kP = 1;
-                currentTurn = Range.clip(error * kP, -1, 1);
-                // stop oscillation
-//                if (Math.abs(error) < Math.toRadians(5)) {
-//                    currentTurn = 0;
-//                }
+                rotate = Range.clip(error * kP, -1, 1);
             }
         }
     }
-
-
 
     public void stopDrive() {
         leftFront.setPower(0);
@@ -361,10 +311,10 @@ public class BlueTrajectoryTest extends LinearOpMode {
 
     public void applyDrive() {
 
-        double lfPower = currentY + currentX + currentTurn;
-        double rfPower = currentY - currentX - currentTurn;
-        double lbPower = currentY - currentX + currentTurn;
-        double rbPower = currentY + currentX - currentTurn;
+        double lfPower = forward + strafe + rotate;
+        double rfPower = forward - strafe - rotate;
+        double lbPower = forward - strafe + rotate;
+        double rbPower = forward + strafe - rotate;
 
         leftFront.setPower(Range.clip(lfPower, -1, 1));
         rightFront.setPower(Range.clip(rfPower, -1, 1));
@@ -380,56 +330,6 @@ public class BlueTrajectoryTest extends LinearOpMode {
         return Math.sqrt(dx*dx + dy*dy);
     }
 
-    public double getFlywheelVelocity(double distance) {
-        return 776.27374 * Math.pow(1.00522, distance) + velOffset;
-    }
-
-    public double getHoodPosition(double distance) {
-        return 0.00000113108 * Math.pow(distance, 3)
-                - 0.000328854 * Math.pow(distance, 2)
-                + 0.0321784 * distance
-                - 0.750827;
-    }
-
-    public void autoShooter() {
-
-        if (!autoShooterEnabled) {
-            targetVelocity = 0;
-        } else if (autoShooterEnabled) {
-
-            Pose robotPose = follower.getPose();
-
-            double rawDistance = getDistanceToGoal(robotPose);
-            distanceFiltered = 0.8 * distanceFiltered
-                    + 0.2 * rawDistance;
-
-            // prevent regression explosion
-            rawDistance = Range.clip(rawDistance, 0, 300);
-
-            double velocity = getFlywheelVelocity(distanceFiltered);
-            double hood = getHoodPosition(distanceFiltered);
-
-            velocity = Range.clip(velocity, ShooterConstant.minTicks, ShooterConstant.maxTicks);
-            hood = Range.clip(hood, ShooterConstant.minServoPos2, ShooterConstant.maxServoPos1);
-
-            if (System.currentTimeMillis() - lastShooterUpdate > 100) {
-                targetVelocity = velocity;
-                lastShooterUpdate = System.currentTimeMillis();
-            }
-
-            HoodPosition1 = hood;
-            HoodPosition2 = 1 - hood;
-
-            HoodServo.setPosition(HoodPosition1);
-            HoodServo2.setPosition(HoodPosition2);
-
-            telemetry.addData("Raw Distance", rawDistance);
-            telemetry.addData("Filtered Distance", distanceFiltered);
-            telemetry.addData("Auto Vel", velocity);
-            telemetry.addData("Auto Hood", hood);
-        }
-    }
-
     private void predictTrajectory() {
 
         if (!autoShooterEnabled) {
@@ -437,24 +337,13 @@ public class BlueTrajectoryTest extends LinearOpMode {
         } else if (autoShooterEnabled) {
 
             double g = ShooterConstant.g;
-            double rawX = getDistanceToGoal(follower.getPose()) * 0.0254; // Convert Inches to meters
+            double x = getDistanceToGoal(follower.getPose()) * 0.0254; // Convert Inches to meters
             double y = ShooterConstant.entryHeight;
             double a = ShooterConstant.entryAngle;
-
-            distanceFiltered = 0.9 * distanceFiltered + 0.1 * rawX;
-
-            double x = distanceFiltered;
 
             if (x < 0.1) return;
 
             double launchAngle = MathFunctions.clamp(Math.atan((2 * y / x) - Math.tan(a)), ShooterConstant.minAngle, ShooterConstant.maxAngle);
-
-            double angleThreshold = Math.toRadians(1.0); // 1 degree
-
-            if (Math.abs(launchAngle - lastLaunchAngle) < angleThreshold) {
-                return;
-            }
-            lastLaunchAngle = launchAngle;
 
             double denominator = (x * Math.tan(launchAngle) - y);
             if (denominator <= 0.01) return;
@@ -462,7 +351,7 @@ public class BlueTrajectoryTest extends LinearOpMode {
             double launchVel = Math.sqrt((g * x * x) / (2 * Math.cos(launchAngle) * Math.cos(launchAngle) * denominator));
 
             double FlywheelVel = Range.clip(Util.getFlywheelVelocityFromV0(launchVel), 900, 1700);
-            double hoodPos = Range.clip(Util.getHoodServoPosFromAngle(launchAngle), ShooterConstant.minServoPos2, ShooterConstant.maxServoPos1);
+            double hoodPos = Range.clip(Util.getHoodServoPosFromAngle(launchAngle), 0, 0.4);
 
             if (System.currentTimeMillis() - lastShooterUpdate > 100) {
                 targetVelocity = FlywheelVel;

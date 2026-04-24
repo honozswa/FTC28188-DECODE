@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.Constants.CameraConstant;
 import org.firstinspires.ftc.teamcode.Constants.PoseConstant;
 import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
+import org.firstinspires.ftc.teamcode.mechanism.Util;
 import org.firstinspires.ftc.teamcode.mechanism.Webcam;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
@@ -30,9 +31,7 @@ public class BlueAutoControl extends LinearOpMode {
     private final Webcam webcam = new Webcam();
 
     // Drivetrain
-    double targetX = 0, targetY = 0, targetTurn = 0;
-    double currentX = 0, currentY = 0, currentTurn = 0;
-    double rampRate = 1;
+    double forward = 0, strafe = 0, rotate = 0;
 
     // Gate
     final double ClosePos = ShooterConstant.closePos;
@@ -40,7 +39,7 @@ public class BlueAutoControl extends LinearOpMode {
 
     // Flywheel Vel
     double targetVelocity = 0;
-    double velOffset = ShooterConstant.FlywheelOffset;
+    boolean autoShooterEnabled = false;
 
     // Intake
     private boolean intakeOn = false;
@@ -48,14 +47,13 @@ public class BlueAutoControl extends LinearOpMode {
     // Hood
     double HoodPosition1 = ShooterConstant.minServoPos2;
     double HoodPosition2 = 1 - HoodPosition1;
+    boolean autoHoodEnabled = false;
 
     // Pose
     private static final Pose GOAL = PoseConstant.BLUE_GOAL;
     boolean autoDriving = false;
     long lastShooterUpdate = 0;
-    double distanceFiltered = 60; // starting guess (any reasonable distance)
-
-    boolean autoShooterEnabled = false;
+    double distanceFiltered = 60;
 
     // Camera Variables
     double CamError = 0;
@@ -67,7 +65,7 @@ public class BlueAutoControl extends LinearOpMode {
     public void runOpMode() {
 
         follower = org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(36, 135.5, Math.toRadians(180)));
+        follower.setStartingPose(PoseConstant.BlueAutoStartPose);
 
         webcam.init(hardwareMap, telemetry);
 
@@ -93,9 +91,8 @@ public class BlueAutoControl extends LinearOpMode {
         shootMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        PIDFCoefficients shooterPIDF = new PIDFCoefficients(150 , 0, 0, 17.0390);
-        shootMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
-        shootMotor2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
+        shootMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, ShooterConstant.shooterPIDF);
+        shootMotor2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, ShooterConstant.shooterPIDF);
 
         HoodServo.setPosition(HoodPosition1);
         HoodServo2.setPosition(HoodPosition2);
@@ -126,8 +123,12 @@ public class BlueAutoControl extends LinearOpMode {
             if (gamepad2.xWasPressed()) {
                 autoShooterEnabled = !autoShooterEnabled;
             }
+            if (gamepad2.yWasPressed()) {
+                autoHoodEnabled = !autoHoodEnabled;
+            }
 
-            autoShooter();
+            autoFlywheel();
+            autoHood();
 
             /* =====================
                AUTO DRIVE
@@ -184,14 +185,6 @@ public class BlueAutoControl extends LinearOpMode {
             telemetry.update();
         }
     }
-    private double rampTowardsTarget(double current, double target, double rate) {
-        double delta = target - current;
-        if (Math.abs(delta) > rate) {
-            return current + Math.signum(delta) * rate;
-        } else {
-            return target;
-        }
-    }
 
     public double getAngleToGoal(Pose robotPose) {
 
@@ -199,16 +192,6 @@ public class BlueAutoControl extends LinearOpMode {
         double dy = GOAL.getY() - robotPose.getY();
 
         return Math.atan2(dy, dx);
-    }
-
-    public double angleWrap(double angle) {
-        while (angle > Math.PI) {
-            angle -= 2 * Math.PI;
-        }
-        while (angle < -Math.PI) {
-            angle += 2 * Math.PI;
-        }
-        return angle;
     }
 
     public void goToShootPose() {
@@ -241,13 +224,9 @@ public class BlueAutoControl extends LinearOpMode {
     }
 
     public void manualDrive() {
-        targetX = gamepad1.left_stick_x;
-        targetY = -gamepad1.left_stick_y;
-        targetTurn = gamepad1.right_stick_x / 1.8;
-
-        currentX = rampTowardsTarget(currentX, targetX, rampRate);
-        currentY = rampTowardsTarget(currentY, targetY, rampRate);
-        currentTurn = rampTowardsTarget(currentTurn, targetTurn, rampRate);
+        strafe = gamepad1.left_stick_x;
+        forward = -gamepad1.left_stick_y;
+        rotate = gamepad1.right_stick_x / 1.8;
     }
 
     public void subSystem() {
@@ -282,32 +261,9 @@ public class BlueAutoControl extends LinearOpMode {
         // =======================
         // Hood
         // =======================
-        if (gamepad2.dpad_up) {
-            HoodPosition1 += 0.01;
-        }
-        if (gamepad2.dpad_down) {
-            HoodPosition1 -= 0.01;
-        }
-        HoodPosition1 = Range.clip(HoodPosition1, ShooterConstant.minServoPos2, ShooterConstant.maxServoPos1);
-        HoodPosition2 = 1 - HoodPosition1;
-
         HoodServo.setPosition(HoodPosition1);
         HoodServo2.setPosition(HoodPosition2);
 
-    }
-
-    public void aimBot() {
-        if (gamepad1.left_trigger > 0.5) {
-            Pose robotPose = follower.getPose();
-            double targetHeading = getAngleToGoal(robotPose);
-            double error = angleWrap(robotPose.getHeading() - targetHeading);
-            double kP = 1;
-            currentTurn = Range.clip(error * kP, -1, 1);
-            // stop oscillation
-            if (Math.abs(error) < Math.toRadians(0.05)) {
-                currentTurn = 0;
-            }
-        }
     }
 
     public void FusionAim(AprilTagDetection id) {
@@ -316,7 +272,7 @@ public class BlueAutoControl extends LinearOpMode {
                 CamError = CameraConstant.goalX - id.ftcPose.bearing;
 
                 if (Math.abs(CamError) < CameraConstant.angleTolerance) {
-                    currentTurn = 0;
+                    rotate = 0;
                 } else {
                     double pTerm = CamError * CameraConstant.kP;
 
@@ -324,7 +280,7 @@ public class BlueAutoControl extends LinearOpMode {
                     double dT = curTime - lastTime;
                     double dTerm = ((CamError - lastCamError) / dT) * CameraConstant.kD;
 
-                    currentTurn = Range.clip(pTerm + dTerm, -0.4,0.4);
+                    rotate = Range.clip(pTerm + dTerm, -0.4,0.4);
 
                     lastCamError = CamError;
                     lastTime = curTime;
@@ -332,18 +288,12 @@ public class BlueAutoControl extends LinearOpMode {
             } else {
                 Pose robotPose = follower.getPose();
                 double targetHeading = getAngleToGoal(robotPose);
-                double error = angleWrap(robotPose.getHeading() - targetHeading);
+                double error = Util.angleWrap(robotPose.getHeading() - targetHeading);
                 double kP = 1;
-                currentTurn = Range.clip(error * kP, -1, 1);
-                // stop oscillation
-                if (Math.abs(error) < Math.toRadians(15)) {
-                    currentTurn = 0;
-                }
+                rotate = Range.clip(error * kP, -1, 1);
             }
         }
     }
-
-
 
     public void stopDrive() {
         leftFront.setPower(0);
@@ -354,10 +304,10 @@ public class BlueAutoControl extends LinearOpMode {
 
     public void applyDrive() {
 
-        double lfPower = currentY + currentX + currentTurn;
-        double rfPower = currentY - currentX - currentTurn;
-        double lbPower = currentY - currentX + currentTurn;
-        double rbPower = currentY + currentX - currentTurn;
+        double lfPower = forward + strafe + rotate;
+        double rfPower = forward - strafe - rotate;
+        double lbPower = forward - strafe + rotate;
+        double rbPower = forward + strafe - rotate;
 
         leftFront.setPower(Range.clip(lfPower, -1, 1));
         rightFront.setPower(Range.clip(rfPower, -1, 1));
@@ -373,42 +323,54 @@ public class BlueAutoControl extends LinearOpMode {
         return Math.sqrt(dx*dx + dy*dy);
     }
 
-    public double getFlywheelVelocity(double distance) {
-        return 776.27374 * Math.pow(1.00522, distance) + velOffset;
-    }
-
-    public double getHoodPosition(double distance) {
-        return 0.00000113108 * Math.pow(distance, 3)
-                - 0.000328854 * Math.pow(distance, 2)
-                + 0.0321784 * distance
-                - 0.750827;
-    }
-
-    public void autoShooter() {
+    public void autoFlywheel() {
 
         if (!autoShooterEnabled) {
             targetVelocity = 0;
         } else if (autoShooterEnabled) {
 
             Pose robotPose = follower.getPose();
-
             double rawDistance = getDistanceToGoal(robotPose);
-            distanceFiltered = 0.8 * distanceFiltered
-                    + 0.2 * rawDistance;
-
-            // prevent regression explosion
             rawDistance = Range.clip(rawDistance, 0, 300);
+            distanceFiltered = 0.8 * distanceFiltered + 0.2 * rawDistance;
 
-            double velocity = getFlywheelVelocity(distanceFiltered);
-            double hood = getHoodPosition(distanceFiltered);
-
+            double velocity = Util.getFlywheelVelocityFromDistance(distanceFiltered);
             velocity = Range.clip(velocity, ShooterConstant.minTicks, ShooterConstant.maxTicks);
-            hood = Range.clip(hood, ShooterConstant.minServoPos2, ShooterConstant.maxServoPos1);
 
             if (System.currentTimeMillis() - lastShooterUpdate > 100) {
                 targetVelocity = velocity;
                 lastShooterUpdate = System.currentTimeMillis();
             }
+
+            telemetry.addData("Raw Distance", rawDistance);
+            telemetry.addData("Filtered Distance", distanceFiltered);
+            telemetry.addData("Auto Vel", velocity);
+            telemetry.update();
+        }
+    }
+
+    public void autoHood() {
+
+        if (!autoHoodEnabled) {
+
+            if (gamepad2.dpad_up) {
+                HoodPosition1 += 0.01;
+            }
+            if (gamepad2.dpad_down) {
+                HoodPosition1 -= 0.01;
+            }
+            HoodPosition1 = Range.clip(HoodPosition1, ShooterConstant.minServoPos2, ShooterConstant.maxServoPos1);
+            HoodPosition2 = 1 - HoodPosition1;
+
+        } else if (autoHoodEnabled) {
+
+            Pose robotPose = follower.getPose();
+            double rawDistance = getDistanceToGoal(robotPose);
+            rawDistance = Range.clip(rawDistance, 0, 300);
+            distanceFiltered = 0.8 * distanceFiltered + 0.2 * rawDistance;
+
+            double hood = Util.getHoodPositionFromDistance(distanceFiltered);
+            hood = Range.clip(hood, ShooterConstant.minServoPos2, ShooterConstant.maxServoPos1);
 
             HoodPosition1 = hood;
             HoodPosition2 = 1 - hood;
@@ -416,10 +378,8 @@ public class BlueAutoControl extends LinearOpMode {
             HoodServo.setPosition(HoodPosition1);
             HoodServo2.setPosition(HoodPosition2);
 
-            telemetry.addData("Raw Distance", rawDistance);
-            telemetry.addData("Filtered Distance", distanceFiltered);
-            telemetry.addData("Auto Vel", velocity);
             telemetry.addData("Auto Hood", hood);
+            telemetry.update();
         }
     }
 

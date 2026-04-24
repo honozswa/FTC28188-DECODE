@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
+import org.firstinspires.ftc.teamcode.mechanism.Util;
 import org.firstinspires.ftc.teamcode.mechanism.Webcam;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
@@ -21,16 +22,14 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 public class FlywheelHoodTuner extends LinearOpMode {
 
     DcMotor leftFront, rightFront, leftBack, rightBack;
-    DcMotorEx shootMotor, shootMotor2, gateMotor;
+    DcMotorEx shootMotor, shootMotor2;
     DcMotor intakeMotor;
     Servo HoodServo, HoodServo2, GateServo;
     Follower follower;
 //    private final Webcam webcam = new Webcam();
 
     // Drivetrain
-    double targetX = 0, targetY = 0, targetTurn = 0;
-    double currentX = 0, currentY = 0, currentTurn = 0;
-    double rampRate = 1;
+    double forward = 0, strafe = 0, rotate = 0;
 
     // Gate
     final double ClosePos = ShooterConstant.closePos;
@@ -57,16 +56,16 @@ public class FlywheelHoodTuner extends LinearOpMode {
     public static final Pose SHOOT_POSE = new Pose(55, 88, Math.toRadians(139.5));
     boolean autoDriving = false;
 
-    // Camera Variables
-    int AprilTagsId = 20; // blue goal
-    double kP = 0.0210;
-    double CamError = 0;
-    double lastCamError = 0;
-    double goalX = 0;
-    double angleTolerance = 0.4;
-    double kD = 0.0005;
-    double curTime = 0;
-    double lastTime = 0;
+//     Camera Variables
+//    int AprilTagsId = 20; // blue goal
+//    double kP = 0.0210;
+//    double CamError = 0;
+//    double lastCamError = 0;
+//    double goalX = 0;
+//    double angleTolerance = 0.4;
+//    double kD = 0.0005;
+//    double curTime = 0;
+//    double lastTime = 0;
 
     @Override
     public void runOpMode() {
@@ -180,14 +179,6 @@ public class FlywheelHoodTuner extends LinearOpMode {
             telemetry.update();
         }
     }
-    private double rampTowardsTarget(double current, double target, double rate) {
-        double delta = target - current;
-        if (Math.abs(delta) > rate) {
-            return current + Math.signum(delta) * rate;
-        } else {
-            return target;
-        }
-    }
 
     public double getAngleToGoal(Pose robotPose) {
 
@@ -195,16 +186,6 @@ public class FlywheelHoodTuner extends LinearOpMode {
         double dy = GOAL.getY() - robotPose.getY();
 
         return Math.atan2(dy, dx);
-    }
-
-    public double angleWrap(double angle) {
-        while (angle > Math.PI) {
-            angle -= 2 * Math.PI;
-        }
-        while (angle < -Math.PI) {
-            angle += 2 * Math.PI;
-        }
-        return angle;
     }
 
     public void goToShootPose() {
@@ -237,13 +218,9 @@ public class FlywheelHoodTuner extends LinearOpMode {
     }
 
     public void manualDrive() {
-        targetX = gamepad1.left_stick_x;
-        targetY = -gamepad1.left_stick_y;
-        targetTurn = gamepad1.right_stick_x / 1.8;
-
-        currentX = rampTowardsTarget(currentX, targetX, rampRate);
-        currentY = rampTowardsTarget(currentY, targetY, rampRate);
-        currentTurn = rampTowardsTarget(currentTurn, targetTurn, rampRate);
+        strafe = gamepad1.left_stick_x;
+        forward = -gamepad1.left_stick_y;
+        rotate = gamepad1.right_stick_x / 1.8;
     }
 
     public void subSystem() {
@@ -282,8 +259,6 @@ public class FlywheelHoodTuner extends LinearOpMode {
         }
         if (gamepad1.right_bumper) {
             GateServo.setPosition(OpenPos);
-            shootMotor.setVelocity(targetVelocity + 200);
-            shootMotor2.setVelocity(targetVelocity + 200);
             intakeMotor.setPower(1);
         } else if (gamepad1.right_trigger > 0.5 || gamepad2.right_trigger > 0.5) {
             intakeMotor.setPower(1);
@@ -314,21 +289,19 @@ public class FlywheelHoodTuner extends LinearOpMode {
         HoodServo2.setPosition(HoodPosition2);
     }
 
-//    public void aimBot() {
-//        double turnPower = currentTurn;
-//
-//        if (gamepad1.left_trigger > 0.5) {
-//            Pose robotPose = follower.getPose();
-//            double targetHeading = getAngleToGoal(robotPose);
-//            double error = angleWrap(robotPose.getHeading() - targetHeading);
-//            double kP = 1;
-//            currentTurn = Range.clip(error * kP, -1, 1);
-//            // stop oscillation
-//            if (Math.abs(error) < Math.toRadians(0.05)) {
-//                currentTurn = 0;
-//            }
-//        }
-//    }
+    public void aimBot() {
+        if (gamepad1.left_trigger > 0.5) {
+            Pose robotPose = follower.getPose();
+            double targetHeading = getAngleToGoal(robotPose);
+            double error = Util.angleWrap(robotPose.getHeading() - targetHeading);
+            double kP = 1;
+            rotate = Range.clip(error * kP, -1, 1);
+            // stop oscillation
+            if (Math.abs(error) < Math.toRadians(1)) {
+                rotate = 0;
+            }
+        }
+    }
 //
 //    public void FusionAim(AprilTagDetection id) {
 //        if (gamepad1.left_trigger > 0.5) {
@@ -372,10 +345,10 @@ public class FlywheelHoodTuner extends LinearOpMode {
 
     public void applyDrive() {
 
-        double lfPower = currentY + currentX + currentTurn;
-        double rfPower = currentY - currentX - currentTurn;
-        double lbPower = currentY - currentX + currentTurn;
-        double rbPower = currentY + currentX - currentTurn;
+        double lfPower = forward + strafe + rotate;
+        double rfPower = forward - strafe - rotate;
+        double lbPower = forward - strafe + rotate;
+        double rbPower = forward + strafe - rotate;
 
         leftFront.setPower(Range.clip(lfPower, -1, 1));
         rightFront.setPower(Range.clip(rfPower, -1, 1));

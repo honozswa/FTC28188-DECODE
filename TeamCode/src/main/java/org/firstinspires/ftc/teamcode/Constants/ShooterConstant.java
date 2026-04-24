@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Constants;
 
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+
 public class ShooterConstant {
 
     // Hood calibration
@@ -9,7 +11,6 @@ public class ShooterConstant {
     public static double minServoPos2 = 0;
     public static double maxAngle = Math.toRadians(60);
     public static double minAngle = Math.toRadians(30);
-    public double lastHoodPos = 0;
 
     // Gate Servo
     public static final double openPos = 0;
@@ -19,6 +20,7 @@ public class ShooterConstant {
     public static final double FlywheelOffset = 50;
     public static final double minTicks = 900;
     public static final double maxTicks = 1700;
+    public static final PIDFCoefficients shooterPIDF = new PIDFCoefficients(150, 0, 0.01, 17.0390);
 
     // Goal Constant (meters)
     public static double entryAngle = Math.toRadians(-25);
