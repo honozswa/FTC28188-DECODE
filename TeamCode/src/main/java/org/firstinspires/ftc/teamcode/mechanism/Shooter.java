@@ -7,35 +7,36 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-public class Flywheel {
-    private DcMotorEx shootMotor, shootMotor2, gateMotor;
+import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
+
+public class Shooter {
+    private DcMotorEx shootMotor, shootMotor2;
     private DcMotor intakeMotor;
     private Servo HoodServo, HoodServo2, GateServo;
     private ElapsedTime stateTimer = new ElapsedTime();
     private enum FlywheelState {
         Idle,
         FlywheelOn,
-        OuttakeOn,
+        IntakeSpeedUp,
         Shot,
-        OuttakeOff,
+        IntakeSpeedDown,
         FlywheelOff,
     }
     private FlywheelState flywheelState;
 
     // Gate
-    private double ClosePos = 0.45;
-    private double OpenPos = 0.0;
+    private double ClosePos = ShooterConstant.closePos;
+    private double OpenPos = ShooterConstant.openPos;
     private double ShotTime = 1;
 
     // Hood
-    double HoodPosition1 = 0.31;
+    double HoodPosition1 = ShooterConstant.minServoPos2;
     double HoodPosition2 = 1 - HoodPosition1;
 
     public void init(HardwareMap hwMap) {
         shootMotor = hwMap.get(DcMotorEx.class, "shootMotor");
         shootMotor2 = hwMap.get(DcMotorEx.class, "shootMotor2");
         intakeMotor = hwMap.get(DcMotor.class, "intakeMotor");
-        gateMotor = hwMap.get(DcMotorEx.class, "gateMotor");
         HoodServo = hwMap.get(Servo.class, "HoodServo");
         HoodServo2 = hwMap.get(Servo.class, "HoodServo2");
         GateServo = hwMap.get(Servo.class, "GateServo");
@@ -43,7 +44,6 @@ public class Flywheel {
         shootMotor.setDirection(DcMotor.Direction.FORWARD);
         shootMotor2.setDirection(DcMotor.Direction.REVERSE);
         intakeMotor.setDirection(DcMotor.Direction.REVERSE);
-        gateMotor.setDirection(DcMotor.Direction.REVERSE);
 
         shootMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -59,7 +59,6 @@ public class Flywheel {
         shootMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shootMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        gateMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         flywheelState = FlywheelState.Idle;
     }
@@ -67,11 +66,11 @@ public class Flywheel {
     public void update() {
         switch (flywheelState) {
             case FlywheelOn:
-                flywheelState = FlywheelState.OuttakeOn;
+                flywheelState = FlywheelState.IntakeSpeedUp;
                 break;
 
-            case OuttakeOn:
-                gateMotor.setPower(1);
+            case IntakeSpeedUp:
+                intakeMotor.setPower(1);
                 stateTimer.reset();
                 flywheelState = FlywheelState.Shot;
                 break;
@@ -81,12 +80,12 @@ public class Flywheel {
                 if (stateTimer.seconds() > ShotTime) {
                     GateServo.setPosition(ClosePos);
                     stateTimer.reset();
-                    flywheelState = FlywheelState.OuttakeOff;
+                    flywheelState = FlywheelState.IntakeSpeedDown;
                 }
                 break;
 
-            case OuttakeOff:
-                gateMotor.setPower(0);
+            case IntakeSpeedDown:
+                intakeMotor.setPower(0.8);;
                 stateTimer.reset();
                 flywheelState = FlywheelState.FlywheelOff;
                 break;

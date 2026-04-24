@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 import org.firstinspires.ftc.teamcode.mechanism.Webcam;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
@@ -20,7 +21,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 public class BlueManualControl extends LinearOpMode {
 
     DcMotor leftFront, rightFront, leftBack, rightBack;
-    DcMotorEx shootMotor, shootMotor2, gateMotor;
+    DcMotorEx shootMotor, shootMotor2;
     DcMotor intakeMotor;
     Servo HoodServo, HoodServo2, GateServo;
     Follower follower;
@@ -32,8 +33,8 @@ public class BlueManualControl extends LinearOpMode {
     double rampRate = 1;
 
     // Gate
-    final double ClosePos = 0.3;
-    final double OpenPos = 0.0;
+    final double ClosePos = ShooterConstant.closePos;
+    final double OpenPos = ShooterConstant.openPos;
 
     // Flywheel Vel
     double ZERO_VELOCITY = 0;
@@ -79,7 +80,6 @@ public class BlueManualControl extends LinearOpMode {
         shootMotor = hardwareMap.get(DcMotorEx.class, "shootMotor");
         shootMotor2 = hardwareMap.get(DcMotorEx.class, "shootMotor2");
         intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
-        gateMotor = hardwareMap.get(DcMotorEx.class, "gateMotor");
         HoodServo = hardwareMap.get(Servo.class, "HoodServo");
         HoodServo2 = hardwareMap.get(Servo.class, "HoodServo2");
         GateServo = hardwareMap.get(Servo.class, "GateServo");
@@ -91,7 +91,6 @@ public class BlueManualControl extends LinearOpMode {
         shootMotor.setDirection(DcMotor.Direction.FORWARD);
         shootMotor2.setDirection(DcMotor.Direction.REVERSE);
         intakeMotor.setDirection(DcMotor.Direction.REVERSE);
-        gateMotor.setDirection(DcMotor.Direction.REVERSE);
 
         shootMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -114,7 +113,6 @@ public class BlueManualControl extends LinearOpMode {
         shootMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shootMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        gateMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         telemetry.addLine("Ready to start");
         telemetry.update();
@@ -286,19 +284,16 @@ public class BlueManualControl extends LinearOpMode {
             GateServo.setPosition(OpenPos);
             shootMotor.setVelocity(targetVelocity + 200);
             shootMotor2.setVelocity(targetVelocity + 200);
-            intakeMotor.setPower(0.65);
-            gateMotor.setPower(1);
+            intakeMotor.setPower(1);
         } else if (gamepad1.right_trigger > 0.5 || gamepad2.right_trigger > 0.5) {
             intakeMotor.setPower(1);
             GateServo.setPosition(ClosePos);
         } else if (gamepad1.dpad_left) {
             GateServo.setPosition(OpenPos);
-            intakeMotor.setPower(1);
-            gateMotor.setPower(0.6);
+            intakeMotor.setPower(0.6);
         } else {
-            gateMotor.setPower(intakeOn ? 0.5 : 0.0);
+            intakeMotor.setPower(intakeOn ? 0.5 : 0.0);
             GateServo.setPosition(ClosePos);
-            intakeMotor.setPower(0.0);
         }
 
         // =======================

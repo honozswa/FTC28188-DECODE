@@ -5,7 +5,7 @@ import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 public class Util {
 
     public static double getHoodServoPosFromAngle(double angle) {
-        return ShooterConstant.servoPos1 + (ShooterConstant.servoPos2 - ShooterConstant.servoPos1) * (angle - ShooterConstant.angle1) / (ShooterConstant.angle2 - ShooterConstant.angle1);
+        return ShooterConstant.maxServoPos1 + (ShooterConstant.minServoPos2 - ShooterConstant.maxServoPos1) * (angle - ShooterConstant.angle1) / (ShooterConstant.angle2 - ShooterConstant.angle1);
     }
 
     public static double getFlywheelVelocityFromV0(double v0) {

@@ -7,7 +7,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.bylazar.telemetry.PanelsTelemetry;
 
-import org.firstinspires.ftc.teamcode.mechanism.Flywheel;
+import org.firstinspires.ftc.teamcode.mechanism.Shooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import com.pedropathing.geometry.BezierCurve;
@@ -25,9 +25,9 @@ public class ShotMechanicTest extends OpMode {
     private Timer pathTimer, opmodeTimer;
 
     // ------ Flywheel Setup ------- //
-    private Flywheel shooter = new Flywheel();
+    private Shooter shooter = new Shooter();
     private boolean shotsTriggered = false;
-    private double targetVelocity = 1200;
+    private double targetVelocity = 1150;
 
     private enum PathState {
         toShoot1,
