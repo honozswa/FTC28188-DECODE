@@ -4,13 +4,12 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Constants.CameraConstant;
 import org.firstinspires.ftc.teamcode.Constants.PoseConstant;
@@ -20,8 +19,8 @@ import org.firstinspires.ftc.teamcode.mechanism.Webcam;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 
-@TeleOp(name = "Blue-AutoControl")
-public class BlueAutoControl extends LinearOpMode {
+@TeleOp(name = "Blue-Mode")
+public class BlueMode extends LinearOpMode {
 
     DcMotor leftFront, rightFront, leftBack, rightBack;
     DcMotorEx shootMotor, shootMotor2;
@@ -48,12 +47,13 @@ public class BlueAutoControl extends LinearOpMode {
     double HoodPosition1 = ShooterConstant.minServoPos2;
     double HoodPosition2 = 1 - HoodPosition1;
     boolean autoHoodEnabled = false;
+    enum ShooterMode { CLOSE, MID, FAR }
+    ShooterMode currentMode = ShooterMode.CLOSE;
 
     // Pose
     private static final Pose GOAL = PoseConstant.BLUE_GOAL;
     boolean autoDriving = false;
-    long lastShooterUpdate = 0;
-    double distanceFiltered = 60;
+    double filteredDistance = 36;
 
     // Camera Variables
     double CamError = 0;
@@ -127,6 +127,8 @@ public class BlueAutoControl extends LinearOpMode {
                 autoHoodEnabled = !autoHoodEnabled;
             }
 
+            updateDistance();
+            updateHoodMode();
             autoFlywheel();
             autoHood();
 
@@ -323,28 +325,57 @@ public class BlueAutoControl extends LinearOpMode {
         return Math.sqrt(dx*dx + dy*dy);
     }
 
+    public void updateDistance() {
+        Pose robotPose = follower.getPose();
+        double rawDistance = getDistanceToGoal(robotPose);
+        filteredDistance = 0.8 * filteredDistance + 0.2 * rawDistance;
+    }
+
+    public void updateHoodMode() {
+        double d = filteredDistance;
+
+        switch (currentMode) {
+            case CLOSE:
+                if (d > ShooterConstant.closeRange)
+                    currentMode = ShooterMode.MID;
+                break;
+
+            case MID:
+                if (d < ShooterConstant.closeRange)
+                    currentMode = ShooterMode.CLOSE;
+                else if (d > ShooterConstant.midRange)
+                    currentMode = ShooterMode.FAR;
+                break;
+
+            case FAR:
+                if (d < ShooterConstant.midRange)
+                    currentMode = ShooterMode.MID;
+                break;
+        }
+    }
+
     public void autoFlywheel() {
 
         if (!autoShooterEnabled) {
             targetVelocity = 0;
-        } else if (autoShooterEnabled) {
+        } else {
 
-            Pose robotPose = follower.getPose();
-            double rawDistance = getDistanceToGoal(robotPose);
-            rawDistance = Range.clip(rawDistance, 0, 300);
-            distanceFiltered = 0.8 * distanceFiltered + 0.2 * rawDistance;
+            double distance = filteredDistance;
 
-            double velocity = Util.getFlywheelVelocityFromDistance(distanceFiltered);
-            velocity = Range.clip(velocity, ShooterConstant.minTicks, ShooterConstant.maxTicks);
-
-            if (System.currentTimeMillis() - lastShooterUpdate > 100) {
-                targetVelocity = velocity;
-                lastShooterUpdate = System.currentTimeMillis();
+            if (currentMode == ShooterMode.CLOSE) {
+                double velocity = Range.clip(Util.getFlywheelVelocityFromDistanceClose(distance), ShooterConstant.minTicks, ShooterConstant.maxTicks);
+                targetVelocity = 0.8 * targetVelocity + 0.2 * velocity;
+            }
+            else if (currentMode == ShooterMode.MID) {
+                double velocity = Range.clip(Util.getFlywheelVelocityFromDistanceMid(distance), ShooterConstant.minTicks, ShooterConstant.maxTicks);
+                targetVelocity = 0.8 * targetVelocity + 0.2 * velocity;
+            }
+            else {
+                double velocity = Range.clip(Util.getFlywheelVelocityFromDistanceFar(distance), ShooterConstant.minTicks, ShooterConstant.maxTicks);
+                targetVelocity = 0.8 * targetVelocity + 0.2 * velocity;
             }
 
-            telemetry.addData("Raw Distance", rawDistance);
-            telemetry.addData("Filtered Distance", distanceFiltered);
-            telemetry.addData("Auto Vel", velocity);
+            telemetry.addData("AutoVel", targetVelocity);
             telemetry.update();
         }
     }
@@ -360,24 +391,24 @@ public class BlueAutoControl extends LinearOpMode {
                 HoodPosition1 -= 0.01;
             }
             HoodPosition1 = Range.clip(HoodPosition1, ShooterConstant.minServoPos2, ShooterConstant.maxServoPos1);
-            HoodPosition2 = 1 - HoodPosition1;
 
-        } else if (autoHoodEnabled) {
+        } else {
 
-            Pose robotPose = follower.getPose();
-            double rawDistance = getDistanceToGoal(robotPose);
-            rawDistance = Range.clip(rawDistance, 0, 300);
-            distanceFiltered = 0.8 * distanceFiltered + 0.2 * rawDistance;
-
-            double hood = Util.getHoodPositionFromDistance(distanceFiltered);
-            hood = Range.clip(hood, ShooterConstant.minServoPos2, ShooterConstant.maxServoPos1);
-
-            HoodPosition1 = hood;
-            HoodPosition2 = 1 - hood;
-
-            telemetry.addData("Auto Hood", hood);
-            telemetry.update();
+            if (currentMode == ShooterMode.CLOSE) {
+                double target = ShooterConstant.CloseModePos;
+                HoodPosition1 = 0.8 * HoodPosition1 + 0.2 * target;
+            }
+            else if (currentMode == ShooterMode.MID) {
+                double target = ShooterConstant.MidModePos;
+                HoodPosition1 = 0.8 * HoodPosition1 + 0.2 * target;
+            }
+            else {
+                double target = ShooterConstant.FarModePos;
+                HoodPosition1 = 0.8 * HoodPosition1 + 0.2 * target;
+            }
         }
+        HoodPosition2 = 1 - HoodPosition1;
+
     }
 
 }

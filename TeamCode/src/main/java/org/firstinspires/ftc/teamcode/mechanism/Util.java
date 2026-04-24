@@ -16,6 +16,18 @@ public class Util {
         return 776.27374 * Math.pow(1.00522, distance) + ShooterConstant.FlywheelOffset;
     }
 
+    public static double getFlywheelVelocityFromDistanceClose(double distance) {
+        return 776.27374 * Math.pow(1.00522, distance) + ShooterConstant.FlywheelOffset;
+    }
+
+    public static double getFlywheelVelocityFromDistanceMid(double distance) {
+        return 776.27374 * Math.pow(1.00522, distance) + ShooterConstant.FlywheelOffset;
+    }
+
+    public static double getFlywheelVelocityFromDistanceFar(double distance) {
+        return 776.27374 * Math.pow(1.00522, distance) + ShooterConstant.FlywheelOffset;
+    }
+
     public static double getHoodPositionFromDistance(double distance) {
         return 0.00000113108 * Math.pow(distance, 3)
                 - 0.000328854 * Math.pow(distance, 2)

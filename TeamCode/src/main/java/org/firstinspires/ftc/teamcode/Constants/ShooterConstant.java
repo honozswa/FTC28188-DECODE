@@ -12,6 +12,12 @@ public class ShooterConstant {
     public static double maxAngle = Math.toRadians(60);
     public static double minAngle = Math.toRadians(30);
 
+    public static double CloseModePos = 0;
+    public static double MidModePos = 0.14;
+    public static double FarModePos = 0.29;
+    public static double closeRange = 95; // [0-95]
+    public static double midRange = 120; // [95-120]
+
     // Gate Servo
     public static final double openPos = 0;
     public static final double closePos = 0.2;
