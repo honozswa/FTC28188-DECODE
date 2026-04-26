@@ -27,6 +27,10 @@ public class ShooterConstant {
     public static final double minTicks = 900;
     public static final double maxTicks = 1700;
     public static final PIDFCoefficients shooterPIDF = new PIDFCoefficients(150, 0, 0.01, 17.0390);
+    public static double ZeroVel = 0;
+    public static double CloseVel = 1100;
+    public static double MidVel = 1700;
+    public static final double VelStep = 50;
 
     // Goal Constant (meters)
     public static double entryAngle = Math.toRadians(-25);

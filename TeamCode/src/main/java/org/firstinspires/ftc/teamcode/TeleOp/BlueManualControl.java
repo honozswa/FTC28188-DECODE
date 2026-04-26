@@ -38,13 +38,11 @@ public class BlueManualControl extends LinearOpMode {
     final double OpenPos = ShooterConstant.openPos;
 
     // Flywheel Vel
-    double ZERO_VELOCITY = 0;
-    double CLOSE_VELOCITY = 1100;
-    double MID_VELOCITY = 1700;
+    double ZERO_VELOCITY = ShooterConstant.ZeroVel;
+    double CLOSE_VELOCITY = ShooterConstant.CloseVel;
+    double MID_VELOCITY = ShooterConstant.MidVel;
     double targetVelocity = 0;
-    final double VELOCITY_STEP = 50;
-    boolean lastUp = false;
-    boolean lastDown = false;
+    final double VELOCITY_STEP = ShooterConstant.VelStep;
 
     // Intake
     private boolean intakeOn = false;
@@ -237,17 +235,14 @@ public class BlueManualControl extends LinearOpMode {
         if (gamepad1.bWasPressed()) {
             targetVelocity = ZERO_VELOCITY;
         }
-        if (gamepad1.dpad_up && !lastUp) {
+        if (gamepad1.dpadUpWasPressed()) {
             targetVelocity += VELOCITY_STEP;
         }
-        if (gamepad1.dpad_down && !lastDown) {
+        if (gamepad1.dpadDownWasPressed()) {
             targetVelocity -= VELOCITY_STEP;
         }
 
         targetVelocity = Math.max(0, targetVelocity);
-
-        lastUp = gamepad1.dpad_up;
-        lastDown = gamepad1.dpad_down;
 
         shootMotor.setVelocity(targetVelocity);
         shootMotor2.setVelocity(targetVelocity);
