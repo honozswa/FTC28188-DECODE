@@ -21,7 +21,8 @@ public class ShooterConstant {
     // Gate Servo
     public static final double openPos = 0.3097;
     public static final double closePos = 0;
-    public static final double shotTime = 0.6;
+    public static final double shotTime = 0.8;
+    public static final double lastBallTransportTime = 0.4;
 
     // Flywheel calibration
     public static final double FlywheelOffset = 0;

@@ -49,7 +49,7 @@ public class ShooterV2 {
     private double downPos = ShooterConstant.intakeServoDownPos;
     private double upPos = ShooterConstant.intakeServoUpPos;
     private double pushPos = ShooterConstant.intakeServoPushPos;
-    private double intakeServo2Offset = 0.07;
+    private double intakeServo2Offset = 0.1;
     private double intakeServoOffsetDuringGame = 0;
 
     public void init(HardwareMap hwMap) {
@@ -210,9 +210,9 @@ public class ShooterV2 {
 //                    intakeMotor.setPower(1);
 //                    outtakeMotor.setPower(1);
 //                }
-                if (stateTimer.seconds() > ShotTime) {
+                if (!firstBallDetected && !secondBallDetected && !lastBallDetected) {
 //                    flywheelOn(getFlywheelVel1() - 1000);
-                    GateServo.setPosition(ClosePos);
+//                    GateServo.setPosition(ClosePos);
 //                    outtakeMotor.setPower(0);
                     stateTimer.reset();
                     shooterState = ShooterState.Done;
@@ -220,13 +220,15 @@ public class ShooterV2 {
                 break;
 
             case Done:
-                GateServo.setPosition(ClosePos);
-                intakeMotor.setPower(0);
-                IntakeServo.setPosition(downPos+intakeServoOffsetDuringGame);
-                IntakeServo2.setPosition(downPos + intakeServo2Offset+intakeServoOffsetDuringGame);
-                ball = 0;
-                stateTimer.reset();
-                shooterState = ShooterState.Idle;
+                if (stateTimer.seconds() > ShooterConstant.lastBallTransportTime) {
+                    GateServo.setPosition(ClosePos);
+                    intakeMotor.setPower(0);
+                    IntakeServo.setPosition(downPos + intakeServoOffsetDuringGame);
+                    IntakeServo2.setPosition(downPos + intakeServo2Offset + intakeServoOffsetDuringGame);
+                    ball = 0;
+                    stateTimer.reset();
+                    shooterState = ShooterState.Idle;
+                }
                 break;
         }
 //        lastDetected = ballDetected;

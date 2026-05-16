@@ -208,16 +208,17 @@ public class RedV4OpMode extends OpMode {
         telemetry.addLine("ToggleIntake: A");
         telemetry.addLine("IntakeSpeedUp: RT");
         telemetry.addLine("Shot: RB");
-        telemetry.addLine("FlywheelCloseVel: Y");
+        telemetry.addLine("FlywheelFarVel: Y");
         telemetry.addLine("FlywheelOff: B");
         telemetry.addLine("AdjustFlywheelVel: Dpad Up/Down");
         telemetry.addLine("AutoPark: LB");
+        telemetry.addLine("ResetIntake: LT");
         telemetry.addLine("");
         telemetry.addLine("-------------- Gamepad2 ------------");
         telemetry.addLine("AutoFlywheel: X");
         telemetry.addLine("AutoHood: Y");
         telemetry.addLine("AutoTurret: A");
-        telemetry.addLine("ResetTurret: LB");
+        telemetry.addLine("ResetTurretAngle: LB");
         telemetry.addLine("AdjustHood: Dpad Up/Down");
         telemetry.addLine("IntakeSpeedUp: RT");
         telemetry.addLine("TurnTurret: leftStick_X");
@@ -329,7 +330,7 @@ public class RedV4OpMode extends OpMode {
                 double robotTarget = Util.angleWrap(targetAngle - robotBackwardHeading);
                 double clippedRobotTarget = Range.clip(robotTarget, TurretConstant.MIN_ANGLE, TurretConstant.MAX_ANGLE);
                 double turretAngle = Math.toRadians(turret.getCurrentAngle());
-                double error = clippedRobotTarget - turretAngle;
+                double error = clippedRobotTarget - turretAngle + TurretConstant.OdoOffset;
                 double pTerm = error * TurretConstant.OdokP;
                 double dTerm = 0;
                 if (dt > 0) { dTerm = ((error - lastErrorOdo) / dt) * TurretConstant.OdokD; }

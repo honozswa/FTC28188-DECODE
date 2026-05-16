@@ -26,7 +26,7 @@ public class V4NoTurret extends OpMode {
     MecanumDrive drive = new MecanumDrive();
     Follower follower;
     ShooterV2 shooter = new ShooterV2();
-//    Turret turret = new Turret();
+    Turret turret = new Turret();
 //    private Limelight3A limelight;
 
     // Drivetrain
@@ -75,7 +75,7 @@ public class V4NoTurret extends OpMode {
 
         drive.init(hardwareMap);
         shooter.init(hardwareMap);
-//        turret.init(hardwareMap);
+        turret.init(hardwareMap);
 
         timer.reset();
     }
@@ -101,10 +101,10 @@ public class V4NoTurret extends OpMode {
 //        }
 //    }
 
-//    @Override
-//    public void start() {
-//        turret.resetTimer();
-//    }
+    @Override
+    public void start() {
+        turret.resetTimer();
+    }
 
     @Override
     public void loop() {
@@ -119,9 +119,9 @@ public class V4NoTurret extends OpMode {
         if (gamepad2.aWasPressed()) {
             turretOn = !turretOn;
         }
-//        if (gamepad2.leftBumperWasPressed()) {
-//            turret.resetEncoder();
-//        }
+        if (gamepad2.leftBumperWasPressed()) {
+            turret.resetEncoder();
+        }
 
         updateDistance();
         updateHoodMode();
@@ -158,6 +158,7 @@ public class V4NoTurret extends OpMode {
 
         // SUBSYSTEMS
 //        TurretAim(limelight.getLatestResult());
+        turret.setPower(gamepad2.left_stick_x * 0.5 );
         subSystem();
         shooter.update();
 

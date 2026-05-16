@@ -218,7 +218,7 @@ public class TurretOdoTuner extends OpMode {
             double robotTarget = Util.angleWrap(targetAngle - robotBackwardHeading);
             double clippedRobotTarget = Range.clip(robotTarget, TurretConstant.MIN_ANGLE, TurretConstant.MAX_ANGLE);
             double turretAngle = Math.toRadians(turret.getCurrentAngle());
-            double error = clippedRobotTarget - turretAngle;
+            double error = clippedRobotTarget - turretAngle + TurretConstant.OdoOffset;
             double pTerm = error * OdoP;
             double dTerm = 0;
             if (dt > 0) { dTerm = ((error - lastErrorOdo) / dt) * OdoD; }
