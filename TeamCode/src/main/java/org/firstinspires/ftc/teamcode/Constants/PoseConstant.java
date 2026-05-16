@@ -9,7 +9,7 @@ public class PoseConstant {
 
     public static final Pose BLUE_SHOOT_POSE = new Pose(48, 100, Math.toRadians(140));
 
-    public static final Pose BlueAutoStartPose = new Pose(48, 135, Math.toRadians(270));
+    public static final Pose BlueCloseAutoStartPose = new Pose(48, 135, Math.toRadians(270));
 
 
     // RED POSE

@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.pedropathing.util.Timer;
-import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -10,10 +9,9 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.bylazar.telemetry.PanelsTelemetry;
 
 import org.firstinspires.ftc.teamcode.Constants.PoseConstant;
-import org.firstinspires.ftc.teamcode.Constants.TurretConstant;
+import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 import org.firstinspires.ftc.teamcode.mechanism.MecanumDrive;
-import org.firstinspires.ftc.teamcode.mechanism.ShooterV2;
-import org.firstinspires.ftc.teamcode.mechanism.Turret;
+import org.firstinspires.ftc.teamcode.mechanism.ShooterV6;
 import org.firstinspires.ftc.teamcode.mechanism.Util;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -23,7 +21,6 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 @Autonomous(name = "RedSpam")
 @Configurable
@@ -33,25 +30,18 @@ public class RedCloseSpam extends OpMode {
     public Follower follower;
     private Timer pathTimer, opmodeTimer;
 
-    // ------ Flywheel Setup ------- //
+    // ------ Mechanics Setup ------- //
     private MecanumDrive drive = new MecanumDrive();
-    private ShooterV2 shooter = new ShooterV2();
-    private Turret turret = new Turret();
+    private ShooterV6 shooter = new ShooterV6();
     private Limelight3A limelight;
     private boolean shotsTriggered = false;
-    private double startVel = 1260;
-    private double rampVel = 1400;
+    private double targetVelocity = 0;
+    private double filteredDistance = 36;
+    private double HoodPos = 0;
+
     // Pose
     private final Pose startPose = PoseConstant.RedCloseAutoStartPose;
     private static final Pose GOAL = PoseConstant.RED_GOAL;
-
-    // Camera Variables
-    double lastErrorCam = 0;
-    double lastErrorOdo = 0;
-
-    // Turret
-    boolean turretOn = true;
-    double turretPower = 0;
     private final ElapsedTime timer = new ElapsedTime();
     private enum PathState {
         toShootPreload,
@@ -88,12 +78,10 @@ public class RedCloseSpam extends OpMode {
 
         // init other mech
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(4); // BlueTag
+        limelight.pipelineSwitch(ShooterConstant.redTagPipeline);
         limelight.start();
 
-        turret.init(hardwareMap);
         shooter.init(hardwareMap);
-        shooter.setHood(0);
 
         timer.reset();
 
@@ -102,17 +90,12 @@ public class RedCloseSpam extends OpMode {
         panelsTelemetry.debug("Status", "Initialized");
         panelsTelemetry.update(telemetry);
 
-        if (limelight.isConnected()) {;
+        if (limelight.isConnected() && limelight.isRunning()) {;
             telemetry.addLine("Limelight Connected");
-            telemetry.addLine("Starting...");
-            telemetry.update();
-            if (limelight.isRunning()) {
-                telemetry.addLine("Ready to start");
-                telemetry.update();
-            }
+            telemetry.addLine("Ready to start");
         } else {
-            telemetry.addLine("Camera is not Connected");
-            telemetry.update();
+            telemetry.addLine("Limelight is not Connected");
+            telemetry.addLine("Please reconnect the Limelight cable");
         }
     }
 
@@ -127,11 +110,14 @@ public class RedCloseSpam extends OpMode {
 
         follower.update();
         shooter.update();
-        TurretAim(limelight.getLatestResult());
+
+        updateDistance();
+        autoFlywheel();
+        autoHood();
+
         autonomousPathUpdate();
 
-//        PoseConstant.AutoEndPose = follower.getPose();
-//        TurretConstant.TurretAngleOffset = turret.getCurrentAngle();
+        PoseConstant.AutoEndPose = follower.getPose();
 
         panelsTelemetry.debug("Path State", pathState.toString());
         panelsTelemetry.debug("X", follower.getPose().getX());
@@ -144,7 +130,6 @@ public class RedCloseSpam extends OpMode {
     @Override
     public void stop() {
         PoseConstant.hasAutoPose = true;
-        TurretConstant.hasTurretAngle = true;
     }
 
     public void autonomousPathUpdate() {
@@ -152,7 +137,6 @@ public class RedCloseSpam extends OpMode {
         switch (pathState) {
 
             case toShootPreload:
-                shooter.flywheelOn(startVel);
                 shooter.intakeOn();
                 shooter.fullBall();
                 follower.followPath(toShootPreload, true);
@@ -161,7 +145,7 @@ public class RedCloseSpam extends OpMode {
 
             case toCollect2:
                 if (!follower.isBusy()) {
-                    if (!shotsTriggered && shooter.getFlywheelVel1() > startVel - 120) {
+                    if (!shotsTriggered) {
                         shooter.fireShot();
                         shotsTriggered = true;
                     } else if (!shooter.isBusy()) {
@@ -174,8 +158,6 @@ public class RedCloseSpam extends OpMode {
             case toShootC2:
                 if (!follower.isBusy()) {
                     follower.followPath(toShootC2, true);
-                    shooter.flywheelOn(rampVel);
-                    shooter.setHood(0.3);
                     setPathState(PathState.toRampCollect1);
                 }
                 break;
@@ -505,7 +487,6 @@ public class RedCloseSpam extends OpMode {
 
     }
 
-
     public void setPathState(PathState newState) {
         pathState = newState;
         pathTimer.resetTimer();
@@ -513,59 +494,20 @@ public class RedCloseSpam extends OpMode {
         shotsTriggered = false;
     }
 
-    public void TurretAim(LLResult result) {
-        if (turretOn) {
-            Pose robotPose = follower.getPose();
-            double dt = timer.seconds();
-            timer.reset();
-            if (result.isValid() && drive.getDistanceToGoal(robotPose, GOAL) > 140) {
-                // ===== CAMERA AIM =====
-                double turretAngle = Math.toRadians(turret.getCurrentAngle());
-                double txRad = Math.toRadians(result.getTx());
-                double turretTarget = Util.angleWrap(turretAngle - txRad);
-                double clippedTarget = Range.clip(turretTarget, TurretConstant.MIN_ANGLE, TurretConstant.MAX_ANGLE);
-                double error = clippedTarget - turretAngle;
-                if (Math.abs(error) < TurretConstant.angleTolerance) {
-                    turretPower = 0;
-                    lastErrorCam = 0;
-                } else {
-                    double pTerm = error * TurretConstant.CamkP;
-                    double dTerm = 0;
-                    if (dt > 0) {
-                        dTerm = ((error - lastErrorCam) / dt) * TurretConstant.CamkD;
-                    }
-                    lastErrorCam = error;
-                    double FeedForward = TurretConstant.CamkF * follower.getAngularVelocity();
-                    turretPower = pTerm + dTerm - FeedForward;
-                }
-                turret.setPower(Range.clip(turretPower,-TurretConstant.MAX_POWER,TurretConstant.MAX_POWER));
+    private void updateDistance() {
+        Pose robotPose = follower.getPose();
+        double rawDistance = drive.getDistanceToGoal(robotPose, GOAL);
+        filteredDistance = 0.8 * filteredDistance + 0.2 * rawDistance;
+    }
 
-                telemetry.addLine("Camera in use");
-                telemetry.addLine("");
+    private void autoFlywheel() {
+        double distance = filteredDistance;
+        targetVelocity = Util.getFlywheelVelocityFromDistance(distance);
+    }
 
-            } else {
-                // ===== ODOMETRY AIM =====
-                double targetAngle = drive.getAngleToGoal(robotPose, GOAL);
-                double robotHeading = robotPose.getHeading();
-                double robotBackwardHeading = Util.angleWrap(robotHeading + Math.PI);
-                double robotTarget = Util.angleWrap(targetAngle - robotBackwardHeading);
-                double clippedRobotTarget = Range.clip(robotTarget, TurretConstant.MIN_ANGLE, TurretConstant.MAX_ANGLE);
-                double turretAngle = Math.toRadians(turret.getCurrentAngle());
-                double error = clippedRobotTarget - turretAngle;
-                double pTerm = error * TurretConstant.OdokP;
-                double dTerm = 0;
-                if (dt > 0) { dTerm = ((error - lastErrorOdo) / dt) * TurretConstant.OdokD; }
-                lastErrorOdo = error;
-                double rotationalFF = TurretConstant.OdokF * follower.getAngularVelocity();
-                turretPower = pTerm + dTerm - rotationalFF;
-
-                turret.setPower(Range.clip(turretPower,-TurretConstant.MAX_POWER,TurretConstant.MAX_POWER));
-
-                telemetry.addLine("Odometry in use");
-                telemetry.addLine("");
-
-            }
-        }
+    private void autoHood() {
+        double distance = filteredDistance;
+        HoodPos = Util.getHoodPositionFromDistance(distance);
     }
 
 }

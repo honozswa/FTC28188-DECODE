@@ -8,8 +8,7 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.bylazar.telemetry.PanelsTelemetry;
 
 import org.firstinspires.ftc.teamcode.Constants.PoseConstant;
-import org.firstinspires.ftc.teamcode.mechanism.Shooter;
-import org.firstinspires.ftc.teamcode.mechanism.ShooterV2;
+import org.firstinspires.ftc.teamcode.mechanism.ShooterV6;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import com.pedropathing.geometry.BezierCurve;
@@ -27,7 +26,7 @@ public class RedCloseAuto extends OpMode {
     private Timer pathTimer, opmodeTimer;
 
     // ------ Flywheel Setup ------- //
-    private ShooterV2 shooter = new ShooterV2();
+    private ShooterV6 shooter = new ShooterV6();
     private boolean shotsTriggered = false;
     private double targetVelocity = 1250;
     private enum PathState {
