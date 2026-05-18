@@ -7,14 +7,15 @@ public class PoseConstant {
     // BLUE POSE
     public static final Pose BLUE_GOAL = new Pose(4 , 140);
 
-    public static final Pose BLUE_SHOOT_POSE = new Pose(48, 100, Math.toRadians(140));
+    public static final Pose BluePark = new Pose(105, 33);
 
     public static final Pose BlueCloseAutoStartPose = new Pose(48, 135, Math.toRadians(270));
 
 
     // RED POSE
     public static final Pose RED_GOAL = new Pose(140 , 140);
-    public static final Pose RedCloseAutoStartPose = new Pose(144-48, 135, Math.toRadians(270));
+    public static final Pose RedPark = new Pose(39, 33);
+    public static final Pose RedCloseAutoStartPose = new Pose(144-48, 135, Math.toRadians(-90));
 
     // Pose Storage
     public static Pose AutoEndPose = new Pose();

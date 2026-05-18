@@ -21,10 +21,11 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
-@Autonomous(name = "BlueSpam")
+@Autonomous(name = "Blue-V6-Close")
 @Configurable
-public class BlueCloseSpam extends OpMode {
+public class BlueV6Close extends OpMode {
 
     private TelemetryManager panelsTelemetry;
     public Follower follower;
@@ -78,7 +79,7 @@ public class BlueCloseSpam extends OpMode {
 
         // init other mech
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(ShooterConstant.blueTagPipeline);
+        limelight.pipelineSwitch(ShooterConstant.redTagPipeline);
         limelight.start();
 
         shooter.init(hardwareMap);
@@ -107,7 +108,6 @@ public class BlueCloseSpam extends OpMode {
 
     @Override
     public void loop() {
-
         follower.update();
         shooter.update();
 
@@ -115,9 +115,14 @@ public class BlueCloseSpam extends OpMode {
         autoFlywheel();
         autoHood();
 
+        targetVelocity = Range.clip(targetVelocity,0,1500);
+        shooter.flywheelOn(targetVelocity);
+        shooter.setHood(HoodPos);
+
         autonomousPathUpdate();
 
         PoseConstant.AutoEndPose = follower.getPose();
+        PoseConstant.hasAutoPose = true;
 
         panelsTelemetry.debug("Path State", pathState.toString());
         panelsTelemetry.debug("X", follower.getPose().getX());
@@ -125,11 +130,6 @@ public class BlueCloseSpam extends OpMode {
         panelsTelemetry.debug("Heading", follower.getPose().getHeading());
 
         panelsTelemetry.update(telemetry);
-    }
-
-    @Override
-    public void stop() {
-        PoseConstant.hasAutoPose = true;
     }
 
     public void autonomousPathUpdate() {
@@ -215,7 +215,7 @@ public class BlueCloseSpam extends OpMode {
 //            case toShootR3:
 //                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3) {
 //                    follower.followPath(toShootR3, true);
-//                    setPathState(PathState.toCollect1);
+//                    setPathState(PathState.toRampCollect4);
 //                }
 //                break;
 
@@ -253,29 +253,29 @@ public class BlueCloseSpam extends OpMode {
             case toShootC1:
                 if (!follower.isBusy()) {
                     follower.followPath(toShootC1, true);
-                    setPathState(PathState.toCollect3);
-
-                }
-                break;
-
-            case toCollect3:
-                if (!follower.isBusy()) {
-                    if (!shotsTriggered) {
-                        shooter.fireShot();
-                        shotsTriggered = true;
-                    } else if (!shooter.isBusy()) {
-                        follower.followPath(toCollect3);
-                        setPathState(PathState.toShootC3);
-                    }
-                }
-                break;
-
-            case toShootC3:
-                if (!follower.isBusy()) {
-                    follower.followPath(toShootC3, true);
                     setPathState(PathState.Finished);
+
                 }
                 break;
+
+//            case toCollect3:
+//                if (!follower.isBusy()) {
+//                    if (!shotsTriggered) {
+//                        shooter.fireShot();
+//                        shotsTriggered = true;
+//                    } else if (!shooter.isBusy()) {
+//                        follower.followPath(toCollect3);
+//                        setPathState(PathState.toShootC3);
+//                    }
+//                }
+//                break;
+//
+//            case toShootC3:
+//                if (!follower.isBusy()) {
+//                    follower.followPath(toShootC3, true);
+//                    setPathState(PathState.Finished);
+//                }
+//                break;
 
             case Finished:
                 if (!follower.isBusy()) {
@@ -320,19 +320,17 @@ public class BlueCloseSpam extends OpMode {
                 .addPath(
                         new BezierLine(
                                 new Pose(48.000, 135.000),
-                                new Pose(48.000, 80.000)
+                                new Pose(48.000, 95.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(180))
-                .setNoDeceleration()
+                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(135))
                 .build();
 
         toCollect2 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(48.000, 80.000),
-                                new Pose(51.000, 48.000),
-                                new Pose(27.692, 57.290),
+                                new Pose(48.000, 95.000),
+                                new Pose(49.000, 53.832),
                                 new Pose(11.000, 55.000)
                         )
                 )
@@ -343,103 +341,97 @@ public class BlueCloseSpam extends OpMode {
                 .addPath(
                         new BezierLine(
                                 new Pose(11.000, 55.000),
-                                new Pose(56.000, 75.000)
+                                new Pose(56.000, 80.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(180))
-                .setNoDeceleration()
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
                 .build();
 
         toRampCollect1 = follower.pathBuilder()
                 .addPath(
-                        new BezierCurve(
-                                new Pose(56.000, 75.000),
-                                new Pose(53.000, 63.000),
-                                new Pose(10.000, 58.000)
+                        new BezierLine(
+                                new Pose(56.000, 80.000),
+                                new Pose(13.000, 60.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(150))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(150))
                 .build();
 
         toShootR1 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(10.000, 58.000),
-                                new Pose(56.000, 75.000)
+                                new Pose(13.000, 60.000),
+                                new Pose(56.000, 80.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(150))
-                .setNoDeceleration()
+                .setLinearHeadingInterpolation(Math.toRadians(150), Math.toRadians(130))
                 .build();
 
         toRampCollect2 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(56.000, 75.000),
-                                new Pose(10.000, 58.000)
+                                new Pose(56.000, 80.000),
+                                new Pose(13.000, 60.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(150))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(150))
                 .build();
 
         toShootR2 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(10.000, 58.000),
-                                new Pose(56.000, 75.000)
+                                new Pose(13.000, 60.000),
+                                new Pose(56.000, 80.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(150))
-                .setNoDeceleration()
+                .setLinearHeadingInterpolation(Math.toRadians(150), Math.toRadians(130))
                 .build();
 
         toRampCollect3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(56.000, 75.000),
-                                new Pose(10.000, 58.000)
+                                new Pose(56.000, 80.000),
+                                new Pose(13.000, 60.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(150))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(150))
                 .build();
 
         toShootR3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(10.000, 58.000),
-                                new Pose(56.000, 75.000)
+                                new Pose(13.000, 60.000),
+                                new Pose(56.000, 80.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(150))
-                .setNoDeceleration()
+                .setLinearHeadingInterpolation(Math.toRadians(150), Math.toRadians(130))
                 .build();
 
         toRampCollect4 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(56.000, 75.000),
-                                new Pose(10.000, 58.000)
+                                new Pose(56.000, 80.000),
+                                new Pose(13.000, 60.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(150))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(150))
                 .build();
 
         toShootR4 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(10.000, 58.000),
-                                new Pose(56.000, 75.000)
+                                new Pose(13.000, 60.000),
+                                new Pose(56.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(150), Math.toRadians(180))
-                .setNoDeceleration()
+                .setLinearHeadingInterpolation(Math.toRadians(150), Math.toRadians(130))
                 .build();
 
         toCollect1 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(56.000, 75.000),
-                                new Pose(15.000, 84.000)
+                                new Pose(56.000, 80.000),
+                                new Pose(18.000, 84.000)
                         )
                 )
                 .setConstantHeadingInterpolation(Math.toRadians(180))
@@ -448,21 +440,20 @@ public class BlueCloseSpam extends OpMode {
         toShootC1 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(15.000, 84.000),
-                                new Pose(48.000, 84.000)
+                                new Pose(18.000, 84.000),
+                                new Pose(56.000, 80.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(180))
-                .setNoDeceleration()
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
                 .build();
 
         toCollect3 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(48.000, 84.000),
+                                new Pose(56.000, 80.000),
                                 new Pose(45.000, 27.000),
                                 new Pose(53.000, 37.000),
-                                new Pose(9.000, 35.000)
+                                new Pose(11.000, 35.000)
                         )
                 )
                 .setConstantHeadingInterpolation(Math.toRadians(180))
@@ -471,25 +462,24 @@ public class BlueCloseSpam extends OpMode {
         toShootC3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(9.000, 35.000),
-                                new Pose(56.000, 75.000)
+                                new Pose(11.000, 35.000),
+                                new Pose(56.000, 80.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(180))
-                .setNoDeceleration()
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
                 .build();
 
         toPark = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(56.000, 75.000),
-                                new Pose(46.741, 68.571)
+                                new Pose(56.000, 80.000),
+                                new Pose(46.000, 69.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(180))
+                .setConstantHeadingInterpolation(Math.toRadians(135))
                 .build();
 
-    }
+        }
 
 
     public void setPathState(PathState newState) {

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.TeleOp.Main;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -33,6 +35,7 @@ public class RedV6OpMode extends OpMode {
     double ZeroVel = ShooterConstant.ZeroVel;
     double FarVel = ShooterConstant.FarVel;
     final double VelStep = ShooterConstant.VelStep;
+    private double FlywheelManualOffset = 0;
 
     // Intake
     private boolean intakeOn = false;
@@ -40,6 +43,7 @@ public class RedV6OpMode extends OpMode {
     // Hood
     double HoodPos = ShooterConstant.minHoodPos;
     boolean autoHoodEnabled = true;
+    private double HoodOffset = 0;
 
     // Pose
     private static final Pose GOAL = PoseConstant.RED_GOAL;
@@ -91,7 +95,7 @@ public class RedV6OpMode extends OpMode {
             targetVelocity = 0;
             autoShooterEnabled = !autoShooterEnabled;
         }
-        if (gamepad2.yWasPressed()) {
+        if (gamepad2.bWasPressed()) {
             autoHoodEnabled = !autoHoodEnabled;
         }
         updateDistance();
@@ -103,7 +107,7 @@ public class RedV6OpMode extends OpMode {
             goToShootPose();
             autoDriving = true;
         }
-        if(autoDriving && drive.driverOverride()) {
+        if(autoDriving && driverOverride()) {
             follower.breakFollowing();
             drive.stopDrive();
             drive.setBrake();
@@ -137,14 +141,19 @@ public class RedV6OpMode extends OpMode {
         telemetry.addData("Gate", shooter.getGatePos());
         telemetry.addData("Shooter Power:", shooter.getFlywheelPower1());
         telemetry.addData("Intake Power:", shooter.getIntakePower());
+        telemetry.addData("IntakeOn", intakeOn);
         telemetry.addData("AutoFlywheelOn", autoShooterEnabled);
         telemetry.addData("AutoHoodOn", autoHoodEnabled);
         telemetry.addLine("");
+        telemetry.addLine("-------------- Offset ------------");
+        telemetry.addData("Flywheel Offset", FlywheelManualOffset);
+        telemetry.addData("Hood Offset", HoodOffset);
+        telemetry.addLine("");
         telemetry.addLine("-------------- Pose ------------");
+        telemetry.addData("Distance", drive.getDistanceToGoal(follower.getPose(),GOAL));
         telemetry.addData("X", follower.getPose().getX());
         telemetry.addData("Y", follower.getPose().getY());
         telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
-        telemetry.addData("Distance", drive.getDistanceToGoal(follower.getPose(),GOAL));
         telemetry.addLine("");
         telemetry.addLine("-------------- Camera ------------");
         telemetry.addData("CameraTagDetected?", limelight.getLatestResult().isValid());
@@ -153,24 +162,21 @@ public class RedV6OpMode extends OpMode {
         telemetry.addData("Running", limelight.isRunning());
         telemetry.addLine("");
         telemetry.addLine("-------------- Gamepad1 ------------");
-        telemetry.addLine("MecanumDrive: left/right stick");
-        telemetry.addLine("ToggleIntake: A");
-        telemetry.addLine("IntakeSpeedUp: RT");
-        telemetry.addLine("Shot: RB");
-        telemetry.addLine("FlywheelFarVel: Y");
-        telemetry.addLine("FlywheelOff: B");
-        telemetry.addLine("AdjustFlywheelVel: Dpad Up/Down");
-        telemetry.addLine("AutoPark: LB");
-        telemetry.addLine("ResetIntake: LT");
+        telemetry.addLine("left/right stick - MecanumDrive");
+        telemetry.addLine("Dpad U/D - AdjustFlywheelVel");
+        telemetry.addLine("A - ToggleIntake");
+        telemetry.addLine("B - FlywheelOff");
+        telemetry.addLine("X - ResetIntake");
+        telemetry.addLine("Y - FlywheelFarVel");
+        telemetry.addLine("RB - Shot");
+        telemetry.addLine("LB - AutoPark");
+        telemetry.addLine("LT - Aimbot: ");
         telemetry.addLine("");
         telemetry.addLine("-------------- Gamepad2 ------------");
-        telemetry.addLine("AutoFlywheel: X");
-        telemetry.addLine("AutoHood: Y");
-        telemetry.addLine("AutoTurret: A");
-        telemetry.addLine("ResetTurretAngle: LB");
-        telemetry.addLine("AdjustHood: Dpad Up/Down");
-        telemetry.addLine("IntakeSpeedUp: RT");
-        telemetry.addLine("TurnTurret: leftStick_X");
+        telemetry.addLine("Dpad U/D - AdjustHood & HoodOffset");
+        telemetry.addLine("Dpad L/R - AdjustFlywheel & FlywheelOffset");
+        telemetry.addLine("X - AutoFlywheel");
+        telemetry.addLine("Y - AutoHood");
         telemetry.addLine("");
         telemetry.update();
     }
@@ -185,12 +191,9 @@ public class RedV6OpMode extends OpMode {
         PathChain shootPath = follower.pathBuilder()
                 .addPath(new BezierLine(
                         follower.getPose(),
-                        PoseConstant.BLUE_SHOOT_POSE
+                        PoseConstant.RedPark
                 ))
-                .setLinearHeadingInterpolation(
-                        follower.getPose().getHeading(),
-                        PoseConstant.BLUE_SHOOT_POSE.getHeading()
-                )
+                .setConstantHeadingInterpolation(follower.getPose().getHeading())
                 .build();
 
         follower.followPath(shootPath);
@@ -200,6 +203,12 @@ public class RedV6OpMode extends OpMode {
         strafe = gamepad1.left_stick_x;
         forward = -gamepad1.left_stick_y;
         rotate = gamepad1.right_stick_x / 1.8;
+    }
+
+    public boolean driverOverride() {
+        return Math.abs(gamepad1.left_stick_x) > 0.15 ||
+                Math.abs(gamepad1.left_stick_y) > 0.15 ||
+                Math.abs(gamepad1.right_stick_x) > 0.15;
     }
 
     public void subSystem() {
@@ -215,15 +224,18 @@ public class RedV6OpMode extends OpMode {
         } else {
             shooter.intakeOff();
         }
-        shooter.setIntakeBoost(gamepad1.right_trigger > 0.5 || gamepad2.right_trigger > 0.5);
-
-        // Shooter
-        if (gamepad1.rightBumperWasPressed()) {
-            shooter.fireShot();
-        }
         if (gamepad1.x) {
             shooter.setReturnRequested();
         }
+        shooter.setIntakeBoost(gamepad1.right_trigger > 0.5 || gamepad2.right_trigger > 0.5);
+
+        // Shooter
+        if (gamepad1.right_bumper) {
+            shooter.fireManualOn();
+        } else {
+            shooter.fireManualOff();
+        }
+
 
         // Hood
         shooter.setHood(HoodPos);
@@ -287,10 +299,10 @@ public class RedV6OpMode extends OpMode {
             if (gamepad1.bWasPressed()) {
                 targetVelocity = ZeroVel;
             }
-            if (gamepad1.dpadUpWasPressed()) {
+            if (gamepad1.dpadUpWasPressed() || gamepad2.dpadRightWasPressed()) {
                 targetVelocity += VelStep;
             }
-            if (gamepad1.dpadDownWasPressed()) {
+            if (gamepad1.dpadDownWasPressed() || gamepad2.dpadLeftWasPressed()) {
                 targetVelocity -= VelStep;
             }
 
@@ -298,8 +310,11 @@ public class RedV6OpMode extends OpMode {
 
         } else {
 
+            setFlywheelManualOffset();
+
             double distance = filteredDistance;
-            targetVelocity = Util.getFlywheelVelocityFromDistance(distance);
+            distance = Range.clip(distance,0,170);
+            targetVelocity = Util.getFlywheelVelocityFromDistance(distance) + FlywheelManualOffset;
 
         }
     }
@@ -309,18 +324,37 @@ public class RedV6OpMode extends OpMode {
         if (!autoHoodEnabled) {
 
             if (gamepad2.dpadUpWasPressed()) {
-                HoodPos += 0.05;
+                HoodPos += ShooterConstant.hoodStep;
             }
             if (gamepad2.dpadDownWasPressed()) {
-                HoodPos -= 0.05;
+                HoodPos -= ShooterConstant.hoodStep;
             }
             HoodPos = Range.clip(HoodPos, ShooterConstant.minHoodPos, ShooterConstant.maxHoodPos);
 
         } else {
 
-            double distance = filteredDistance;
-            HoodPos = Util.getHoodPositionFromDistance(distance);
+            setHoodOffset();
 
+            double distance = filteredDistance;
+            distance = Range.clip(distance,0,170);
+            HoodPos = Util.getHoodPositionFromDistance(distance) + HoodOffset;
+
+        }
+    }
+
+    public void setFlywheelManualOffset() {
+        if (gamepad2.dpadRightWasPressed()) {
+            FlywheelManualOffset += 20;
+        } else if (gamepad2.dpadLeftWasPressed()) {
+            FlywheelManualOffset -= 20;
+        }
+    }
+
+    public void setHoodOffset() {
+        if (gamepad2.dpadUpWasPressed()) {
+            HoodOffset += 0.01;
+        } else if (gamepad2.dpadDownWasPressed()) {
+            HoodOffset -= 0.01;
         }
     }
 

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.mechanism;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -12,7 +13,7 @@ import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 public class ShooterV6 {
     private DcMotor intakeMotor, outtakeMotor;
     private DcMotorEx shootMotor, shootMotor2;
-    private Servo HoodServo, HoodServo2, GateServo;
+    private Servo HoodServo, HoodServo2, GateServo, GateServo2;
     DistanceSensor distanceSens = new DistanceSensor();
     ColorSensor colorSensor = new ColorSensor();
     ColorSensor.DetectedColor detectedColor;
@@ -24,18 +25,15 @@ public class ShooterV6 {
         Hold,
         ThreeBall,
         Shot,
+        ShotManual,
         Done,
     }
     private ShooterState shooterState;
 
     // Gate
-    private double ClosePos = ShooterConstant.closePos;
-    private double OpenPos = ShooterConstant.openPos;
     private boolean shotRequested = false;
     private boolean returnRequested = false;
-
-    // Hood
-    double HoodPos = ShooterConstant.minHoodPos;
+    private boolean fireManualRequested = false;
 
     // Intake
     private boolean intakeisOn = false;
@@ -50,12 +48,13 @@ public class ShooterV6 {
         HoodServo = hwMap.get(Servo.class, "HoodServo");
         HoodServo2 = hwMap.get(Servo.class, "HoodServo2");
         GateServo = hwMap.get(Servo.class, "GateServo");
+        GateServo2 = hwMap.get(Servo.class,"GateServo2");
         distanceSens.init(hwMap);
         colorSensor.init(hwMap);
 
         shootMotor.setDirection(DcMotor.Direction.FORWARD);
         shootMotor2.setDirection(DcMotor.Direction.REVERSE);
-        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
+        intakeMotor.setDirection(DcMotor.Direction.REVERSE);
         outtakeMotor.setDirection(DcMotor.Direction.FORWARD);
         HoodServo2.setDirection(Servo.Direction.REVERSE);
 
@@ -65,9 +64,8 @@ public class ShooterV6 {
         shootMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, ShooterConstant.shooterPIDF);
         shootMotor2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, ShooterConstant.shooterPIDF);
 
-        HoodServo.setPosition(HoodPos);
-        HoodServo2.setPosition(HoodPos);
-        GateServo.setPosition(ClosePos);
+        setHood(ShooterConstant.minHoodPos);
+        closeGate();
 
         shootMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shootMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -79,6 +77,8 @@ public class ShooterV6 {
     }
 
     public void update() {
+
+        // boolean
         detectedColor = colorSensor.getDetectedBall();
         boolean lowSensorDetected = detectedColor != ColorSensor.DetectedColor.UNKNOWN;
 
@@ -87,11 +87,12 @@ public class ShooterV6 {
 
         boolean highSensorDetected = distanceSens.ballDetection();
 
+        // state machine
         switch (shooterState) {
             case Idle:
                 intakeMotor.setPower(0);
                 outtakeMotor.setPower(0);
-                GateServo.setPosition(ClosePos);
+                closeGate();
                 if (intakeisOn) {
                     shooterState = ShooterState.Intake;
                 }
@@ -100,12 +101,16 @@ public class ShooterV6 {
                     stateTimer.reset();
                     shooterState = ShooterState.Shot;
                 }
+                if (fireManualRequested) {
+                    stateTimer.reset();
+                    shooterState = ShooterState.ShotManual;
+                }
                 break;
 
             case Intake:
                 intakeMotor.setPower(1);
                 outtakeMotor.setPower(1);
-                GateServo.setPosition(ClosePos);
+                closeGate();
                 if (!intakeisOn) {
                     shooterState = ShooterState.Idle;
                 }
@@ -117,11 +122,16 @@ public class ShooterV6 {
                     stateTimer.reset();
                     shooterState = ShooterState.Shot;
                 }
+                if (fireManualRequested) {
+                    stateTimer.reset();
+                    shooterState = ShooterState.ShotManual;
+                }
                 break;
 
             case Hold:
                 intakeMotor.setPower(1);
-                GateServo.setPosition(ClosePos);
+                outtakeMotor.setPower(0);
+                closeGate();
                 if (!intakeisOn) {
                     shooterState = ShooterState.Idle;
                 }
@@ -129,23 +139,24 @@ public class ShooterV6 {
                     stateTimer.reset();
                     shooterState = ShooterState.ThreeBall;
                 }
-                else if (lowSensorDetected) {
-                    outtakeMotor.setPower(1);
+                else if (highSensorDetected && midSensorDetected) {
+                    outtakeMotor.setPower(0);
                 }
-                else if (shotRequested) {
+                if (shotRequested) {
                     shotRequested = false;
                     stateTimer.reset();
                     shooterState = ShooterState.Shot;
                 }
-                else {
-                    outtakeMotor.setPower(0);
+                if (fireManualRequested) {
+                    stateTimer.reset();
+                    shooterState = ShooterState.ShotManual;
                 }
                 break;
 
             case ThreeBall:
                 intakeMotor.setPower(0);
                 outtakeMotor.setPower(0);
-                GateServo.setPosition(ClosePos);
+                closeGate();
                 if (returnRequested) {
                     returnRequested = false;
                     if (midSensorDetected || highSensorDetected) {
@@ -159,20 +170,36 @@ public class ShooterV6 {
                     stateTimer.reset();
                     shooterState = ShooterState.Shot;
                 }
+                if (fireManualRequested) {
+                    stateTimer.reset();
+                    shooterState = ShooterState.ShotManual;
+                }
                 break;
 
             case Shot:
-                GateServo.setPosition(OpenPos);
+                openGate();
                 intakeMotor.setPower(1);
                 outtakeMotor.setPower(1);
-                if (!highSensorDetected && !midSensorDetected && !lowSensorDetected) {
+                if (!lowSensorDetected && !midSensorDetected && !highSensorDetected) {
                     stateTimer.reset();
                     shooterState = ShooterState.Done;
                 }
                 break;
 
+            case ShotManual:
+                if (fireManualRequested) {
+                    openGate();
+                    intakeMotor.setPower(1);
+                    outtakeMotor.setPower(1);
+                } else {
+                    shooterState = ShooterState.Done;
+                }
+
+                break;
+
             case Done:
                 if (stateTimer.seconds() > ShooterConstant.lastBallTransportTime) {
+                    closeGate();
                     if (!intakeisOn) {
                         stateTimer.reset();
                         shooterState = ShooterState.Idle;
@@ -186,11 +213,19 @@ public class ShooterV6 {
     }
 
     public boolean isBusy() {
-        return shooterState != ShooterState.Idle;
+        return shooterState != ShooterState.Idle && shooterState != ShooterState.Intake;
     }
 
     public void fireShot() {
         shotRequested = true;
+    }
+
+    public void fireManualOn() {
+        fireManualRequested = true;
+    }
+
+    public void fireManualOff() {
+        fireManualRequested = false;
     }
 
     public void setReturnRequested() {
@@ -249,9 +284,10 @@ public class ShooterV6 {
     }
 
     public void setHood(double pos) {
-        pos = Range.clip(pos,ShooterConstant.minHoodPos,ShooterConstant.maxHoodPos);
-        HoodServo.setPosition(pos);
-        HoodServo2.setPosition(pos);
+        double pos1 = Range.clip(pos,ShooterConstant.minHoodPos,ShooterConstant.maxHoodPos);
+        double pos2 = Range.clip(pos+ShooterConstant.hoodServo2Offset, ShooterConstant.minHoodPos, ShooterConstant.maxHoodPos);
+        HoodServo.setPosition(pos1);
+        HoodServo2.setPosition(pos2);
     }
 
     public double getHoodPos() {
@@ -260,6 +296,16 @@ public class ShooterV6 {
 
     public double getGatePos() {
         return GateServo.getPosition();
+    }
+
+    public void closeGate() {
+        GateServo.setPosition(ShooterConstant.closePos);
+        GateServo2.setPosition(ShooterConstant.closePos2);
+    }
+
+    public void openGate() {
+        GateServo.setPosition(ShooterConstant.openPos);
+        GateServo2.setPosition(ShooterConstant.openPos2);
     }
 
 

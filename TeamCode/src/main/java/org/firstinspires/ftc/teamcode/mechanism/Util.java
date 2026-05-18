@@ -5,20 +5,20 @@ import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 public class Util {
 
     public static double getFlywheelVelocityFromDistance(double distance) {
-        return 0.00000502676 * Math.pow(distance, 4)
-                - 0.00241126 * Math.pow(distance, 3)
-                + 0.412176 * Math.pow(distance, 2)
-                - 23.78612 * distance
-                + 1495.57704
+        return - 0.00000599859 * Math.pow(distance, 4)
+                + 0.00259486 * Math.pow(distance, 3)
+                - 0.403602 * Math.pow(distance, 2)
+                + 31.91837 * distance
+                + 54.40743
                 + ShooterConstant.FlywheelOffset;
     }
 
     public static double getHoodPositionFromDistance(double distance) {
-        return (8.07094e-9) * Math.pow(distance, 4)
-                - 0.00000304562 * Math.pow(distance, 3)
-                + 0.000379248 * Math.pow(distance, 2)
-                - 0.0130841 * distance
-                + 0.0724324;
+        return - (1.05483e-8) * Math.pow(distance, 4)
+                + 0.00000516111 * Math.pow(distance, 3)
+                - 0.000939197 * Math.pow(distance, 2)
+                + 0.074721 * distance
+                - 1.91019;
     }
 
     public static double angleWrap(double angle) {

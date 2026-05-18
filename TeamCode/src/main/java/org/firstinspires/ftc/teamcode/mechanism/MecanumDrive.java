@@ -53,12 +53,6 @@ public class MecanumDrive {
         rightBack.setPower(0);
     }
 
-    public boolean driverOverride() {
-        return Math.abs(gamepad1.left_stick_x) > 0.15 ||
-                Math.abs(gamepad1.left_stick_y) > 0.15 ||
-                Math.abs(gamepad1.right_stick_x) > 0.15;
-    }
-
     public double getDistanceToGoal(Pose robotPose, Pose goalPose) {
 
         double dx = goalPose.getX() - robotPose.getX();

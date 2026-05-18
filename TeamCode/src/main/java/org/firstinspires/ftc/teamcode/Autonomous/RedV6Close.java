@@ -21,10 +21,11 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
-@Autonomous(name = "RedSpam")
+@Autonomous(name = "Red-V6-Close")
 @Configurable
-public class RedCloseSpam extends OpMode {
+public class RedV6Close extends OpMode {
 
     private TelemetryManager panelsTelemetry;
     public Follower follower;
@@ -115,9 +116,14 @@ public class RedCloseSpam extends OpMode {
         autoFlywheel();
         autoHood();
 
+        targetVelocity = Range.clip(targetVelocity,0,1500);
+        shooter.flywheelOn(targetVelocity);
+        shooter.setHood(HoodPos);
+
         autonomousPathUpdate();
 
         PoseConstant.AutoEndPose = follower.getPose();
+        PoseConstant.hasAutoPose = true;
 
         panelsTelemetry.debug("Path State", pathState.toString());
         panelsTelemetry.debug("X", follower.getPose().getX());
@@ -323,121 +329,116 @@ public class RedCloseSpam extends OpMode {
                                 new Pose(96.000, 95.000)
                         )
                 )
-                .setTangentHeadingInterpolation()
+                .setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(45))
                 .build();
 
         toCollect2 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
                                 new Pose(96.000, 95.000),
-                                new Pose(93.000, 63.033),
+                                new Pose(95.467, 53.832),
                                 new Pose(133.000, 55.000)
                         )
                 )
-                .setTangentHeadingInterpolation()
+                .setConstantHeadingInterpolation(Math.toRadians(0))
                 .build();
 
         toShootC2 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
                                 new Pose(133.000, 55.000),
-                                new Pose(88.000, 75.000)
+                                new Pose(88.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(270))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45))
                 .build();
 
         toRampCollect1 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(88.000, 75.000),
+                                new Pose(88.000, 80.000),
                                 new Pose(91.000, 63.000),
-                                new Pose(132.000, 62.000)
+                                new Pose(131.000, 60.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(30))
+                .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(30))
                 .build();
 
         toShootR1 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(132.000, 62.000),
-                                new Pose(88.000, 75.000)
+                                new Pose(131.000, 60.000),
+                                new Pose(88.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(270))
-                .setNoDeceleration()
+                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(45))
                 .build();
 
         toRampCollect2 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(88.000, 75.000),
-                                new Pose(132.000, 62.000)
+                                new Pose(88.000, 80.000),
+                                new Pose(131.000, 60.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(30))
+                .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(30))
                 .build();
 
         toShootR2 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(132.000, 62.000),
-                                new Pose(88.000, 75.000)
+                                new Pose(131.000, 60.000),
+                                new Pose(88.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(270))
-                .setNoDeceleration()
+                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(45))
                 .build();
 
         toRampCollect3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(88.000, 75.000),
-                                new Pose(132.000, 62.000)
+                                new Pose(88.000, 80.000),
+                                new Pose(131.000, 60.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(30))
+                .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(30))
                 .build();
 
         toShootR3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(132.000, 62.000),
-                                new Pose(88.000, 75.000)
+                                new Pose(131.000, 60.000),
+                                new Pose(88.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(270))
-                .setNoDeceleration()
+                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(45))
                 .build();
 
         toRampCollect4 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(88.000, 75.000),
-                                new Pose(132.000, 62.000)
+                                new Pose(88.000, 80.000),
+                                new Pose(131.000, 60.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(30))
+                .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(30))
                 .build();
 
         toShootR4 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(132.000, 62.000),
-                                new Pose(88.000, 75.000)
+                                new Pose(131.000, 60.000),
+                                new Pose(88.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(270))
-                .setNoDeceleration()
+                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(45))
                 .build();
 
         toCollect1 = follower.pathBuilder()
                 .addPath(
-                        new BezierCurve(
-                                new Pose(88.000, 75.000),
-                                new Pose(88.192, 84.921),
-                                new Pose(129.000, 84.000)
+                        new BezierLine(
+                                new Pose(88.000, 80.000),
+                                new Pose(126.000, 84.000)
                         )
                 )
                 .setConstantHeadingInterpolation(Math.toRadians(0))
@@ -446,17 +447,17 @@ public class RedCloseSpam extends OpMode {
         toShootC1 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(129.000, 84.000),
-                                new Pose(96.000, 84.000)
+                                new Pose(126.000, 84.000),
+                                new Pose(88.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(270))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45))
                 .build();
 
         toCollect3 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(96.000, 84.000),
+                                new Pose(88.000, 80.000),
                                 new Pose(99.000, 27.000),
                                 new Pose(91.000, 37.000),
                                 new Pose(135.000, 35.000)
@@ -469,20 +470,20 @@ public class RedCloseSpam extends OpMode {
                 .addPath(
                         new BezierLine(
                                 new Pose(135.000, 35.000),
-                                new Pose(96.000, 84.000)
+                                new Pose(88.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(270))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45))
                 .build();
 
         toPark = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(96.000, 84.000),
-                                new Pose(98.000, 68.571)
+                                new Pose(88.000, 80.000),
+                                new Pose(98.000, 69.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(270))
+                .setConstantHeadingInterpolation(Math.toRadians(45))
                 .build();
 
     }
