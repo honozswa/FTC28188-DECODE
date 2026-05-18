@@ -336,7 +336,7 @@ public class RedV6Close extends OpMode {
                 .addPath(
                         new BezierCurve(
                                 new Pose(96.000, 95.000),
-                                new Pose(95.467, 53.832),
+                                new Pose(95.000, 53.832),
                                 new Pose(133.000, 55.000)
                         )
                 )
@@ -355,9 +355,8 @@ public class RedV6Close extends OpMode {
 
         toRampCollect1 = follower.pathBuilder()
                 .addPath(
-                        new BezierCurve(
+                        new BezierLine(
                                 new Pose(88.000, 80.000),
-                                new Pose(91.000, 63.000),
                                 new Pose(131.000, 60.000)
                         )
                 )
@@ -460,7 +459,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(88.000, 80.000),
                                 new Pose(99.000, 27.000),
                                 new Pose(91.000, 37.000),
-                                new Pose(135.000, 35.000)
+                                new Pose(133.000, 35.000)
                         )
                 )
                 .setConstantHeadingInterpolation(Math.toRadians(0))
@@ -469,7 +468,7 @@ public class RedV6Close extends OpMode {
         toShootC3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(135.000, 35.000),
+                                new Pose(133.000, 35.000),
                                 new Pose(88.000, 80.000)
                         )
                 )

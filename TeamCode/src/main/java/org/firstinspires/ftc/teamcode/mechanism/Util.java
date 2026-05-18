@@ -10,7 +10,7 @@ public class Util {
                 - 0.403602 * Math.pow(distance, 2)
                 + 31.91837 * distance
                 + 54.40743
-                + ShooterConstant.FlywheelOffset;
+                + ShooterConstant.AutoFlywheelOffset;
     }
 
     public static double getHoodPositionFromDistance(double distance) {
@@ -18,7 +18,8 @@ public class Util {
                 + 0.00000516111 * Math.pow(distance, 3)
                 - 0.000939197 * Math.pow(distance, 2)
                 + 0.074721 * distance
-                - 1.91019;
+                - 1.91019
+                + ShooterConstant.AutoHoodOffset;
     }
 
     public static double angleWrap(double angle) {

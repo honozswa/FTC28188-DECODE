@@ -9,6 +9,7 @@ public class ShooterConstant {
     public static double minHoodPos = 0;
     public static final double hoodServo2Offset = 0; // Servo1 is Expansion hub side, 2 is on Control hub side.
     public static final double hoodStep = 0.03;
+    public static final double AutoHoodOffset = -0.06;
 
     /// Gate
     public static final double openPos = 0.6011; // 1 - ExpansionHub , 2 - ControlHub
@@ -20,7 +21,7 @@ public class ShooterConstant {
     public static final double lastBallTransportTime = 0.3;
 
     /// Flywheel
-    public static final double FlywheelOffset = 0;
+    public static final double AutoFlywheelOffset = 0;
     public static final double minTicks = 800;
     public static final double maxTicks = 1600;
     public static final PIDFCoefficients shooterPIDF = new PIDFCoefficients(155, 0, 0, 17.83);
