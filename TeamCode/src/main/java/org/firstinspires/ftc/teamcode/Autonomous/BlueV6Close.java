@@ -77,11 +77,6 @@ public class BlueV6Close extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
 
-        // init other mech
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(ShooterConstant.redTagPipeline);
-        limelight.start();
-
         shooter.init(hardwareMap);
 
         timer.reset();
@@ -90,14 +85,6 @@ public class BlueV6Close extends OpMode {
 
         panelsTelemetry.debug("Status", "Initialized");
         panelsTelemetry.update(telemetry);
-
-        if (limelight.isConnected() && limelight.isRunning()) {;
-            telemetry.addLine("Limelight Connected");
-            telemetry.addLine("Ready to start");
-        } else {
-            telemetry.addLine("Limelight is not Connected");
-            telemetry.addLine("Please reconnect the Limelight cable");
-        }
     }
 
     @Override
@@ -175,7 +162,7 @@ public class BlueV6Close extends OpMode {
                 break;
 
             case toShootR1:
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3) {
+                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 3 || shooter.isThreeBall())) {
                     follower.followPath(toShootR1, true);
                     setPathState(PathState.toRampCollect2);
                 }
@@ -194,7 +181,7 @@ public class BlueV6Close extends OpMode {
                 break;
 
             case toShootR2:
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3) {
+                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 3.2 || shooter.isThreeBall())) {
                     follower.followPath(toShootR2, true);
                     setPathState(PathState.toRampCollect4);
                 }
@@ -213,7 +200,7 @@ public class BlueV6Close extends OpMode {
 //                break;
 //
 //            case toShootR3:
-//                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3) {
+//                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 3.2 || shooter.isThreeBall())) {
 //                    follower.followPath(toShootR3, true);
 //                    setPathState(PathState.toRampCollect4);
 //                }
@@ -232,7 +219,7 @@ public class BlueV6Close extends OpMode {
                 break;
 
             case toShootR4:
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3) {
+                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 3.2 || shooter.isThreeBall())) {
                     follower.followPath(toShootR4, true);
                     setPathState(PathState.toCollect1);
                 }
@@ -351,80 +338,80 @@ public class BlueV6Close extends OpMode {
                 .addPath(
                         new BezierLine(
                                 new Pose(56.000, 80.000),
-                                new Pose(13.000, 60.000)
+                                new Pose(13.000, 59.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(150))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(160))
                 .build();
 
         toShootR1 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(13.000, 60.000),
+                                new Pose(13.000, 59.000),
                                 new Pose(56.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(150), Math.toRadians(130))
+                .setLinearHeadingInterpolation(Math.toRadians(160), Math.toRadians(135))
                 .build();
 
         toRampCollect2 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
                                 new Pose(56.000, 80.000),
-                                new Pose(13.000, 60.000)
+                                new Pose(13.000, 59.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(150))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(160))
                 .build();
 
         toShootR2 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(13.000, 60.000),
+                                new Pose(13.000, 59.000),
                                 new Pose(56.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(150), Math.toRadians(130))
+                .setLinearHeadingInterpolation(Math.toRadians(160), Math.toRadians(135))
                 .build();
 
         toRampCollect3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
                                 new Pose(56.000, 80.000),
-                                new Pose(13.000, 60.000)
+                                new Pose(13.000, 59.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(150))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(160))
                 .build();
 
         toShootR3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(13.000, 60.000),
+                                new Pose(13.000, 59.000),
                                 new Pose(56.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(150), Math.toRadians(130))
+                .setLinearHeadingInterpolation(Math.toRadians(160), Math.toRadians(135))
                 .build();
 
         toRampCollect4 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
                                 new Pose(56.000, 80.000),
-                                new Pose(13.000, 60.000)
+                                new Pose(13.000, 59.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(150))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(160))
                 .build();
 
         toShootR4 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(13.000, 60.000),
+                                new Pose(13.000, 59.000),
                                 new Pose(56.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(150), Math.toRadians(130))
+                .setLinearHeadingInterpolation(Math.toRadians(160), Math.toRadians(135))
                 .build();
 
         toCollect1 = follower.pathBuilder()

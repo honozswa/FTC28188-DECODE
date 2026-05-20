@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 
-public class ShooterV6 {
+public class ShooterMax {
     private DcMotor intakeMotor, outtakeMotor;
     private DcMotorEx shootMotor, shootMotor2;
     private Servo HoodServo, HoodServo2, GateServo, GateServo2;
@@ -39,6 +39,8 @@ public class ShooterV6 {
     private boolean intakeisOn = false;
     private boolean intakeBoost = false;
     private boolean outtakeisOn = false;
+    private ElapsedTime noBallTimer = new ElapsedTime();
+    private boolean noBallTiming = false;
 
     public void init(HardwareMap hwMap) {
         shootMotor = hwMap.get(DcMotorEx.class, "shootMotor");
@@ -196,9 +198,22 @@ public class ShooterV6 {
                 openGate();
                 intakeMotor.setPower(1);
                 outtakeMotor.setPower(1);
-                if (!lowSensorDetected && !midSensorDetected && !highSensorDetected) {
-                    stateTimer.reset();
-                    shooterState = ShooterState.Done;
+                boolean noBallDetected = !lowSensorDetected && !midSensorDetected && !highSensorDetected;
+                if (noBallDetected) {
+                    // start timer ONCE
+                    if (!noBallTiming) {
+                        noBallTiming = true;
+                        noBallTimer.reset();
+                    }
+                    // confirmed empty for 0.5 sec
+                    if (noBallTimer.seconds() > ShooterConstant.lastBallTransportTime) {
+                        noBallTiming = false;
+                        stateTimer.reset();
+                        shooterState = ShooterState.Done;
+                    }
+                } else {
+                    // ball came back -> cancel countdown
+                    noBallTiming = false;
                 }
                 break;
 
@@ -214,7 +229,7 @@ public class ShooterV6 {
                 break;
 
             case Done:
-                if (stateTimer.seconds() > ShooterConstant.lastBallTransportTime) {
+//                if (stateTimer.seconds() > ShooterConstant.lastBallTransportTime) {
                     closeGate();
                     if (!intakeisOn) {
                         stateTimer.reset();
@@ -223,7 +238,7 @@ public class ShooterV6 {
                         stateTimer.reset();
                         shooterState = ShooterState.Intake;
                     }
-                }
+//                }
                 break;
         }
     }

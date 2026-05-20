@@ -26,6 +26,7 @@ public class BlueV6OpMode extends OpMode {
 
     // Drivetrain
     double forward = 0, strafe = 0, rotate = 0;
+    double curForward = 0, curStrafe = 0;
 
     // Flywheel
     double targetVelocity = 0;
@@ -37,6 +38,7 @@ public class BlueV6OpMode extends OpMode {
 
     // Intake
     private boolean intakeOn = false;
+    private boolean lastFull = false;
 
     // Hood
     double HoodPos = ShooterConstant.minHoodPos;
@@ -101,7 +103,7 @@ public class BlueV6OpMode extends OpMode {
         autoHood();
 
         // Auto Park
-        if(gamepad1.left_bumper && !autoDriving) {
+        if(gamepad1.y && !autoDriving) {
             goToShootPose();
             autoDriving = true;
         }
@@ -124,12 +126,14 @@ public class BlueV6OpMode extends OpMode {
         } else {
             manualDrive();
             Aimbot(limelight.getLatestResult());
+            gateHeading();
             drive.drive(forward,strafe,rotate);
         }
 
         // Subsystem
         subSystem();
         shooter.update();
+        indicateFullBall();
 
         // Telemetry
         telemetry.addLine("-------------- Shooter ------------");
@@ -165,10 +169,10 @@ public class BlueV6OpMode extends OpMode {
         telemetry.addLine("A - ToggleIntake");
         telemetry.addLine("B - FlywheelOff");
         telemetry.addLine("X - ResetIntake");
-        telemetry.addLine("Y - FlywheelFarVel");
+        telemetry.addLine("Y - AutoPark");
         telemetry.addLine("RB - Shot");
-        telemetry.addLine("LB - AutoPark");
-        telemetry.addLine("LT - Aimbot: ");
+        telemetry.addLine("LB - LimelightAim");
+        telemetry.addLine("LT - OdometryAim");
         telemetry.addLine("");
         telemetry.addLine("-------------- Gamepad2 ------------");
         telemetry.addLine("Dpad U/D - AdjustHood & HoodOffset");
@@ -200,7 +204,16 @@ public class BlueV6OpMode extends OpMode {
     public void manualDrive() {
         strafe = gamepad1.left_stick_x;
         forward = -gamepad1.left_stick_y;
-        rotate = gamepad1.right_stick_x / 1.8;
+        rotate = gamepad1.right_stick_x;
+    }
+
+    private double rampTowardsTarget(double current, double target, double rate) {
+        double delta = target - current;
+        if (Math.abs(delta) > rate) {
+            return current + Math.signum(delta) * rate;
+        } else {
+            return target;
+        }
     }
 
     public boolean driverOverride() {
@@ -225,7 +238,7 @@ public class BlueV6OpMode extends OpMode {
         if (gamepad1.x) {
             shooter.setReturnRequested();
         }
-        shooter.setIntakeBoost(gamepad1.right_trigger > 0.5 || gamepad2.right_trigger > 0.5);
+//        shooter.setIntakeBoost(gamepad1.right_trigger > 0.5 || gamepad2.right_trigger > 0.5);
 
         // Shooter
         if (gamepad1.right_bumper) {
@@ -241,7 +254,7 @@ public class BlueV6OpMode extends OpMode {
     }
 
     public void Aimbot(LLResult result) {
-        if (gamepad1.left_trigger > 0.5) {
+        if (gamepad1.left_bumper && gamepad1.left_trigger > 0.5) {
             double dt = timer.seconds();
             timer.reset();
             if (result.isValid()) {
@@ -249,7 +262,9 @@ public class BlueV6OpMode extends OpMode {
                 double error = result.getTx() + ShooterConstant.llOffset;
                 double pTerm = error * ShooterConstant.llkP;
                 double dTerm = 0;
-                if (dt > 0) { dTerm = ((error - lastErrorLL) / dt) * ShooterConstant.llkD;}
+                if (dt > 0) {
+                    dTerm = ((error - lastErrorLL) / dt) * ShooterConstant.llkD;
+                }
                 double rawRotate = Range.clip(pTerm + dTerm, -ShooterConstant.maxRotatePower, ShooterConstant.maxRotatePower);
                 if (Math.abs(rawRotate) < ShooterConstant.lowPowerThreshold) {
                     rotate = Math.signum(rawRotate) * Math.pow(Math.abs(rawRotate), ShooterConstant.exponent);
@@ -261,12 +276,15 @@ public class BlueV6OpMode extends OpMode {
                 telemetry.addData("error", error);
                 telemetry.addLine("");
             } else {
+                // ===== ODOMETRY AIM =====
                 Pose robotPose = follower.getPose();
                 double targetHeading = drive.getAngleToGoal(robotPose, GOAL);
                 double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset);
                 double pTerm = error * ShooterConstant.odokP;
                 double dTerm = 0;
-                if (dt > 0) { dTerm = ((error - lastErrorOdo) / dt) * ShooterConstant.odokD;}
+                if (dt > 0) {
+                    dTerm = ((error - lastErrorOdo) / dt) * ShooterConstant.odokD;
+                }
                 double rawRotate = Range.clip(pTerm + dTerm, -ShooterConstant.maxRotatePower, ShooterConstant.maxRotatePower);
                 if (Math.abs(rawRotate) < ShooterConstant.lowPowerThreshold) {
                     rotate = Math.signum(rawRotate) * Math.pow(Math.abs(rawRotate), ShooterConstant.exponent);
@@ -275,6 +293,50 @@ public class BlueV6OpMode extends OpMode {
                 }
                 lastErrorOdo = error;
                 telemetry.addLine("Odometry in use");
+                telemetry.addData("error", error);
+                telemetry.addLine("");
+            }
+        } else if (gamepad1.left_trigger > 0.5) {
+            // ===== ODOMETRY AIM =====
+            double dt = timer.seconds();
+            timer.reset();
+            Pose robotPose = follower.getPose();
+            double targetHeading = drive.getAngleToGoal(robotPose, GOAL);
+            double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset);
+            double pTerm = error * ShooterConstant.odokP;
+            double dTerm = 0;
+            if (dt > 0) {
+                dTerm = ((error - lastErrorOdo) / dt) * ShooterConstant.odokD;
+            }
+            double rawRotate = Range.clip(pTerm + dTerm, -ShooterConstant.maxRotatePower, ShooterConstant.maxRotatePower);
+            if (Math.abs(rawRotate) < ShooterConstant.lowPowerThreshold) {
+                rotate = Math.signum(rawRotate) * Math.pow(Math.abs(rawRotate), ShooterConstant.exponent);
+            } else {
+                rotate = rawRotate;
+            }
+            lastErrorOdo = error;
+            telemetry.addLine("Odometry in use");
+            telemetry.addData("error", error);
+            telemetry.addLine("");
+        } else if (gamepad1.left_bumper) {
+            if (result.isValid()) {
+                // ===== CAMERA AIM =====
+                double dt = timer.seconds();
+                timer.reset();
+                double error = result.getTx() + ShooterConstant.llOffset;
+                double pTerm = error * ShooterConstant.llkP;
+                double dTerm = 0;
+                if (dt > 0) {
+                    dTerm = ((error - lastErrorLL) / dt) * ShooterConstant.llkD;
+                }
+                double rawRotate = Range.clip(pTerm + dTerm, -ShooterConstant.maxRotatePower, ShooterConstant.maxRotatePower);
+                if (Math.abs(rawRotate) < ShooterConstant.lowPowerThreshold) {
+                    rotate = Math.signum(rawRotate) * Math.pow(Math.abs(rawRotate), ShooterConstant.exponent);
+                } else {
+                    rotate = rawRotate;
+                }
+                lastErrorLL = error;
+                telemetry.addLine("Camera in use");
                 telemetry.addData("error", error);
                 telemetry.addLine("");
             }
@@ -291,9 +353,9 @@ public class BlueV6OpMode extends OpMode {
 
         if (!autoShooterEnabled) {
 
-            if (gamepad1.yWasPressed()) {
-                targetVelocity = FarVel;
-            }
+//            if (gamepad1.yWasPressed()) {
+//                targetVelocity = FarVel;
+//            }
             if (gamepad1.bWasPressed()) {
                 targetVelocity = ZeroVel;
             }
@@ -353,6 +415,25 @@ public class BlueV6OpMode extends OpMode {
             HoodOffset += 0.01;
         } else if (gamepad2.dpadDownWasPressed()) {
             HoodOffset -= 0.01;
+        }
+    }
+
+    public void indicateFullBall() {
+        boolean currentFull = shooter.isThreeBall();
+        if (currentFull && !lastFull) {
+            gamepad1.rumble(500);
+        }
+        lastFull = currentFull;
+    }
+
+    public void gateHeading() {
+        if (gamepad1.right_trigger > 0.5) {
+            double targetHeading = Math.toRadians(150);
+            double currentHeading = follower.getPose().getHeading();
+            double error = Util.angleWrap(currentHeading - targetHeading);
+            double rotateAssist = error * 0.5;
+            rotateAssist = Range.clip(rotateAssist, -ShooterConstant.maxRotatePower, ShooterConstant.maxRotatePower);
+            rotate = rotateAssist;
         }
     }
 

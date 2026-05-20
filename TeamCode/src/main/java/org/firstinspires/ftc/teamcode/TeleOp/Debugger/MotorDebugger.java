@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.teamcode.TeleOp.Tuner;
+package org.firstinspires.ftc.teamcode.TeleOp.Debugger;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-@TeleOp(name = "Tuner-MotorSetPower", group = "Tuner")
-public class SetPowerTest extends OpMode {
+@TeleOp(name = "Debugger-Motor", group = "Debugger")
+public class MotorDebugger extends OpMode {
 
     DcMotor motor;
     double power = 0;

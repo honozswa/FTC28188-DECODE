@@ -105,10 +105,10 @@ public class LimelightAimTuner extends OpMode {
             timer.reset();
             if (result.isValid()) {
                 // ===== CAMERA AIM =====
-                double error = result.getTx() + ShooterConstant.llOffset;
-                double pTerm = error * ShooterConstant.llkP;
+                double error = result.getTx() + Offset;
+                double pTerm = error * kP;
                 double dTerm = 0;
-                if (dt > 0) { dTerm = ((error - lastErrorLL) / dt) * ShooterConstant.llkD;}
+                if (dt > 0) { dTerm = ((error - lastErrorLL) / dt) * kD;}
                 double rawRotate = Range.clip(pTerm + dTerm, -ShooterConstant.maxRotatePower, ShooterConstant.maxRotatePower);
                 if (Math.abs(rawRotate) < ShooterConstant.lowPowerThreshold) {
                     rotate = Math.signum(rawRotate) * Math.pow(Math.abs(rawRotate), ShooterConstant.exponent);

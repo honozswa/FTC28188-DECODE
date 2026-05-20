@@ -20,7 +20,7 @@ public class Constants {
             .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.2, 0.0955931617776966, 0.001778327628768233))
             .centripetalScaling(0);
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.95, 80, 1, 1);
+    public static PathConstraints pathConstraints = new PathConstraints(0.95, 100, 1, 1);
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)

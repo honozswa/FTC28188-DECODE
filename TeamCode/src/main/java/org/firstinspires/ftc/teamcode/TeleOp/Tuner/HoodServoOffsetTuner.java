@@ -48,7 +48,7 @@ public class HoodServoOffsetTuner extends OpMode {
 
         telemetry.addData("Pos1 (Dpad U/D)",pos1);
         telemetry.addData("Pos2 (Dpad L/R)",pos2);
-        telemetry.addData("Servo2Offset",pos1-pos2);
+        telemetry.addData("Servo2Offset",pos2-pos1);
 
     }
 

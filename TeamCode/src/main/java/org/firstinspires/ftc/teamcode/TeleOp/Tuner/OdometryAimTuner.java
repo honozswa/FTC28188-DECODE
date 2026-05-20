@@ -39,10 +39,16 @@ public class OdometryAimTuner extends OpMode {
 
         drive.init(hardwareMap);
 
+        follower = org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower(hardwareMap);
+        follower.setStartingPose(PoseConstant.RedCloseAutoStartPose);
+
     }
 
     @Override
     public void loop() {
+
+        follower.update();
+
         // Mecanum Drive Input
         forward =- gamepad1.left_stick_y;
         strafe = gamepad1.left_stick_x;
@@ -100,10 +106,10 @@ public class OdometryAimTuner extends OpMode {
             timer.reset();
             Pose robotPose = follower.getPose();
             double targetHeading = drive.getAngleToGoal(robotPose, GOAL);
-            double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset);
-            double pTerm = error * ShooterConstant.odokP;
+            double error = Util.angleWrap(robotPose.getHeading() - targetHeading + Offset);
+            double pTerm = error * kP;
             double dTerm = 0;
-            if (dt > 0) { dTerm = ((error - lastErrorOdo) / dt) * ShooterConstant.odokD;}
+            if (dt > 0) { dTerm = ((error - lastErrorOdo) / dt) * kD;}
             double rawRotate = Range.clip(pTerm + dTerm, -ShooterConstant.maxRotatePower, ShooterConstant.maxRotatePower);
             if (Math.abs(rawRotate) < ShooterConstant.lowPowerThreshold) {
                 rotate = Math.signum(rawRotate) * Math.pow(Math.abs(rawRotate), ShooterConstant.exponent);

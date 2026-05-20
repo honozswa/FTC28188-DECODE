@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.TeleOp.Tuner;
+package org.firstinspires.ftc.teamcode.TeleOp.Debugger;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -14,8 +14,8 @@ import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 import org.firstinspires.ftc.teamcode.mechanism.MecanumDrive;
 import org.firstinspires.ftc.teamcode.mechanism.Util;
 
-@TeleOp(name = "Tuner-FusionAimbot", group = "Tuner")
-public class AimbotTuner extends OpMode {
+@TeleOp(name = "Debugger-FusionAimbot", group = "Debugger")
+public class AimbotDebugger extends OpMode {
     private final MecanumDrive drive = new MecanumDrive();
     private Limelight3A limelight;
     Follower follower;

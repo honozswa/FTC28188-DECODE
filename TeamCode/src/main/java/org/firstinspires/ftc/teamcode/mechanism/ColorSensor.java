@@ -19,10 +19,10 @@ public class ColorSensor {
 
     public void init(HardwareMap hwMap) {
         sensor = hwMap.get(NormalizedColorSensor.class,"ColorSensor");
-        sensor.setGain(15);
+        sensor.setGain(100);
 
         sensor2 = hwMap.get(NormalizedColorSensor.class,"ColorSensor2");
-        sensor2.setGain(15);
+        sensor2.setGain(100);
     }
 
     public DetectedColor getDetectedColorRGB(Telemetry telemetry) {
@@ -48,9 +48,9 @@ public class ColorSensor {
         NormalizedRGBA colors = sensor2.getNormalizedColors();
 
         float normRed, normGreen, normBlue;
-        normRed = colors.red / colors.alpha;
-        normGreen = colors.green / colors.alpha;
-        normBlue = colors.blue / colors.alpha;
+        normRed = colors.red;
+        normGreen = colors.green;
+        normBlue = colors.blue;
 
         telemetry.addData("red2", normRed);
         telemetry.addData("green2", normGreen);
@@ -71,7 +71,7 @@ public class ColorSensor {
         normGreen = colors.green;
         normBlue = colors.blue;
 
-        if (normGreen > 0.3 || normBlue > 0.3 || normRed > 0.3) {
+        if (normGreen > 0.45 || normBlue > 0.45) {
             return DetectedColor.BALL_DETECTED;
         }
         else {
@@ -87,7 +87,7 @@ public class ColorSensor {
         normGreen = colors.green;
         normBlue = colors.blue;
 
-        if (normGreen > 0.3 || normBlue > 0.3 || normRed > 0.3) {
+        if (normGreen > 0.45 || normBlue > 0.45) {
             return DetectedColor2.BALL_DETECTED;
         }
         else {

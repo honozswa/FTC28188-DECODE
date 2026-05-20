@@ -16,6 +16,7 @@ public class PoseConstant {
     public static final Pose RED_GOAL = new Pose(140 , 140);
     public static final Pose RedPark = new Pose(39, 33);
     public static final Pose RedCloseAutoStartPose = new Pose(144-48, 135, Math.toRadians(-90));
+    public static final Pose RedFarAutoStartPose = new Pose(96, 9, Math.toRadians(90));
 
     // Pose Storage
     public static Pose AutoEndPose = new Pose();

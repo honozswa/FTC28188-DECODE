@@ -24,9 +24,9 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-@Autonomous(name = "Red-Close-18",group = "Red")
+@Autonomous(name = "Red-Close-21",group = "Red")
 @Configurable
-public class RedV6Close extends OpMode {
+public class RedV6CloseMax extends OpMode {
 
     private TelemetryManager panelsTelemetry;
     public Follower follower;
@@ -168,7 +168,7 @@ public class RedV6Close extends OpMode {
                 break;
 
             case toShootR1:
-                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 3 || shooter.isThreeBall())) {
+                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 2.75 || shooter.isThreeBall())) {
                     follower.followPath(toShootR1, true);
                     setPathState(PathState.toRampCollect2);
                 }
@@ -187,30 +187,30 @@ public class RedV6Close extends OpMode {
                 break;
 
             case toShootR2:
-                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 3.4 || shooter.isThreeBall())) {
+                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 2.75 || shooter.isThreeBall())) {
                     follower.followPath(toShootR2, true);
-                    setPathState(PathState.toRampCollect4);
+                    setPathState(PathState.toRampCollect3);
                 }
                 break;
 
-//            case toRampCollect3:
-//                if (!follower.isBusy()) {
-//                    if (!shotsTriggered) {
-//                        shooter.fireShot();
-//                        shotsTriggered = true;
-//                    } else if (!shooter.isBusy()) {
-//                        follower.followPath(toRampCollect3);
-//                        setPathState(PathState.toShootR3);
-//                    }
-//                }
-//                break;
-//
-//            case toShootR3:
-//                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 3 || shooter.isThreeBall())) {
-//                    follower.followPath(toShootR3, true);
-//                    setPathState(PathState.toRampCollect4);
-//                }
-//                break;
+            case toRampCollect3:
+                if (!follower.isBusy()) {
+                    if (!shotsTriggered) {
+                        shooter.fireShot();
+                        shotsTriggered = true;
+                    } else if (!shooter.isBusy()) {
+                        follower.followPath(toRampCollect3);
+                        setPathState(PathState.toShootR3);
+                    }
+                }
+                break;
+
+            case toShootR3:
+                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 2.75 || shooter.isThreeBall())) {
+                    follower.followPath(toShootR3, true);
+                    setPathState(PathState.toRampCollect4);
+                }
+                break;
 
             case toRampCollect4:
                 if (!follower.isBusy()) {
@@ -225,7 +225,7 @@ public class RedV6Close extends OpMode {
                 break;
 
             case toShootR4:
-                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 3.4 || shooter.isThreeBall())) {
+                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 2.75 || shooter.isThreeBall())) {
                     follower.followPath(toShootR4, true);
                     setPathState(PathState.toCollect1);
                 }
@@ -404,7 +404,7 @@ public class RedV6Close extends OpMode {
                 .addPath(
                         new BezierLine(
                                 new Pose(85.000, 80.000),
-                                new Pose(131.200, 60.200)
+                                new Pose(131.500, 60.500)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(49), Math.toRadians(30))
@@ -413,7 +413,7 @@ public class RedV6Close extends OpMode {
         toShootR4 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(131.200, 60.200),
+                                new Pose(131.500, 60.500),
                                 new Pose(85.000, 80.000)
                         )
                 )
