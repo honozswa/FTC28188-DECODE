@@ -88,6 +88,9 @@ public class RedV6OpMode extends OpMode {
     @Override
     public void loop() {
 
+        if (gamepad1.bWasPressed()) {
+            resetPose();
+        }
         follower.update();
 
         // Automatic Flywheel and Hood
@@ -126,7 +129,7 @@ public class RedV6OpMode extends OpMode {
         } else {
             manualDrive();
             Aimbot(limelight.getLatestResult());
-            gateHeading();
+            lockHeading();
             drive.drive(forward,strafe,rotate);
         }
 
@@ -134,9 +137,6 @@ public class RedV6OpMode extends OpMode {
         subSystem();
         shooter.update();
         indicateFullBall();
-        if (gamepad1.bWasPressed()) {
-            resetPose();
-        }
 
         // Telemetry
         telemetry.addLine("-------------- Shooter ------------");
@@ -251,7 +251,6 @@ public class RedV6OpMode extends OpMode {
             shooter.fireManualOff();
         }
 
-
         // Hood
         shooter.setHood(HoodPos);
 
@@ -360,9 +359,9 @@ public class RedV6OpMode extends OpMode {
 //            if (gamepad1.yWasPressed()) {
 //                targetVelocity = FarVel;
 //            }
-            if (gamepad1.bWasPressed()) {
-                targetVelocity = ZeroVel;
-            }
+//            if (gamepad1.bWasPressed()) {
+//                targetVelocity = ZeroVel;
+//            }
             if (gamepad1.dpadUpWasPressed() || gamepad2.dpadRightWasPressed()) {
                 targetVelocity += VelStep;
             }
@@ -430,7 +429,7 @@ public class RedV6OpMode extends OpMode {
         lastFull = currentFull;
     }
 
-    public void gateHeading() {
+    public void lockHeading() {
         if (gamepad1.right_trigger > 0.5) {
             double targetHeading = Math.toRadians(0);
             double currentHeading = follower.getPose().getHeading();

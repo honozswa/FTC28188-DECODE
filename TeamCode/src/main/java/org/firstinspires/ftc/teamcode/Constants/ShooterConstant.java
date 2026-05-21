@@ -9,7 +9,7 @@ public class ShooterConstant {
     public static double minHoodPos = 0;
     public static final double hoodServo2Offset = 0.05; // Servo1 is Expansion hub side, 2 is on Control hub side.
     public static final double hoodStep = 0.01;
-    public static final double AutoHoodOffset = -0.02;
+    public static final double AutoHoodOffset = 0.01;
 
     /// Gate
     public static final double openPos = 0.59; // 1 - ExpansionHub , 2 - ControlHub
@@ -35,7 +35,7 @@ public class ShooterConstant {
     // Odometry PID
     public static final double odokP = 0.7;
     public static final double odokD = 0.05;
-    public static final double odoOffset = Math.toRadians(-3); // Degrees (-) -> left
+    public static final double odoOffset = Math.toRadians(0); // Degrees (-) -> left
 
     // Limelight PID
     public static final double llkP = 0.01;
