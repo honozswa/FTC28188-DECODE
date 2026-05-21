@@ -104,7 +104,7 @@ public class RedV6OpMode extends OpMode {
 
         // Auto Park
         if(gamepad1.y && !autoDriving) {
-            goToShootPose();
+            goToParkPose();
             autoDriving = true;
         }
         if(autoDriving && driverOverride()) {
@@ -170,10 +170,11 @@ public class RedV6OpMode extends OpMode {
         telemetry.addLine("left/right stick - MecanumDrive");
         telemetry.addLine("Dpad U/D - AdjustFlywheelVel");
         telemetry.addLine("A - ToggleIntake");
-        telemetry.addLine("B - FlywheelOff");
+        telemetry.addLine("B - ResetPose");
         telemetry.addLine("X - ResetIntake");
         telemetry.addLine("Y - AutoPark");
         telemetry.addLine("RB - Shot");
+        telemetry.addLine("RT - TurnTo0degrees");
         telemetry.addLine("LB - LimelightAim");
         telemetry.addLine("LT - OdometryAim");
         telemetry.addLine("");
@@ -191,7 +192,7 @@ public class RedV6OpMode extends OpMode {
         limelight.shutdown();
     }
 
-    public void goToShootPose() {
+    public void goToParkPose() {
 
         PathChain shootPath = follower.pathBuilder()
                 .addPath(new BezierLine(
