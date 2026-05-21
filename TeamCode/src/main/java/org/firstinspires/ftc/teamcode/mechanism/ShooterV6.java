@@ -19,6 +19,10 @@ public class ShooterV6 {
     ColorSensor.DetectedColor detectedColor;
     ColorSensor.DetectedColor2 detectedColor2;
     private ElapsedTime stateTimer = new ElapsedTime();
+    private boolean outtakeTiming = false;
+    private ElapsedTime outtakeTimer = new ElapsedTime();
+    private ElapsedTime noBallTimer = new ElapsedTime();
+    private boolean noBallTiming = false;
     public enum ShooterState {
         Idle,
         Intake,
@@ -130,15 +134,27 @@ public class ShooterV6 {
 
             case Hold:
                 intakeMotor.setPower(1);
-                outtakeMotor.setPower(0);
                 closeGate();
                 if (!intakeisOn) {
                     shooterState = ShooterState.Idle;
                 }
                 if (highSensorDetected && midSensorDetected && lowSensorDetected) {
+                    outtakeTiming = false;
                     stateTimer.reset();
                     shooterState = ShooterState.ThreeBall;
                 }
+                if (highSensorDetected && midSensorDetected && !lowSensorDetected) {
+                    if (!outtakeTiming) {
+                        outtakeTiming = true;
+                        outtakeTimer.reset();
+                    }
+                    if (outtakeTimer.seconds() > 0.5) {
+                        outtakeMotor.setPower(0);
+                    }
+                } else {
+                    outtakeMotor.setPower(0.65);
+                }
+
                 if (shotRequested) {
                     shotRequested = false;
                     stateTimer.reset();
@@ -196,9 +212,19 @@ public class ShooterV6 {
                 openGate();
                 intakeMotor.setPower(1);
                 outtakeMotor.setPower(1);
-                if (!lowSensorDetected && !midSensorDetected && !highSensorDetected) {
-                    stateTimer.reset();
-                    shooterState = ShooterState.Done;
+                boolean noBallDetected = !lowSensorDetected && !midSensorDetected && !highSensorDetected;
+                if (noBallDetected) {
+                    if (!noBallTiming) {
+                        noBallTiming = true;
+                        noBallTimer.reset();
+                    }
+                    if (noBallTimer.seconds() > ShooterConstant.lastBallTransportTime) {
+                        noBallTiming = false;
+                        stateTimer.reset();
+                        shooterState = ShooterState.Done;
+                    }
+                } else {
+                    noBallTiming = false;
                 }
                 break;
 
@@ -214,15 +240,13 @@ public class ShooterV6 {
                 break;
 
             case Done:
-                if (stateTimer.seconds() > ShooterConstant.lastBallTransportTime) {
-                    closeGate();
-                    if (!intakeisOn) {
-                        stateTimer.reset();
-                        shooterState = ShooterState.Idle;
-                    } else {
-                        stateTimer.reset();
-                        shooterState = ShooterState.Intake;
-                    }
+                closeGate();
+                if (!intakeisOn) {
+                    stateTimer.reset();
+                    shooterState = ShooterState.Idle;
+                } else {
+                    stateTimer.reset();
+                    shooterState = ShooterState.Intake;
                 }
                 break;
         }

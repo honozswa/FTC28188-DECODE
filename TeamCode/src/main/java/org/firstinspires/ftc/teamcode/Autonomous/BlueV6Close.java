@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.pedropathing.util.Timer;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.bylazar.configurables.annotations.Configurable;
@@ -9,7 +8,6 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.bylazar.telemetry.PanelsTelemetry;
 
 import org.firstinspires.ftc.teamcode.Constants.PoseConstant;
-import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 import org.firstinspires.ftc.teamcode.mechanism.MecanumDrive;
 import org.firstinspires.ftc.teamcode.mechanism.ShooterV6;
 import org.firstinspires.ftc.teamcode.mechanism.Util;
@@ -34,7 +32,6 @@ public class BlueV6Close extends OpMode {
     // ------ Mechanics Setup ------- //
     private MecanumDrive drive = new MecanumDrive();
     private ShooterV6 shooter = new ShooterV6();
-    private Limelight3A limelight;
     private boolean shotsTriggered = false;
     private double targetVelocity = 0;
     private double filteredDistance = 36;
@@ -310,7 +307,7 @@ public class BlueV6Close extends OpMode {
                                 new Pose(48.000, 95.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(135))
+                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(139))
                 .build();
 
         toCollect2 = follower.pathBuilder()
@@ -318,7 +315,7 @@ public class BlueV6Close extends OpMode {
                         new BezierCurve(
                                 new Pose(48.000, 95.000),
                                 new Pose(49.000, 53.832),
-                                new Pose(11.000, 55.000)
+                                new Pose(8.000, 55.000)
                         )
                 )
                 .setConstantHeadingInterpolation(Math.toRadians(180))
@@ -327,97 +324,97 @@ public class BlueV6Close extends OpMode {
         toShootC2 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(11.000, 55.000),
-                                new Pose(56.000, 80.000)
+                                new Pose(8.000, 55.000),
+                                new Pose(59.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(128))
                 .build();
 
         toRampCollect1 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(56.000, 80.000),
-                                new Pose(13.000, 59.000)
+                                new Pose(59.000, 80.000),
+                                new Pose(12.500, 60.500)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(160))
+                .setLinearHeadingInterpolation(Math.toRadians(128), Math.toRadians(150))
                 .build();
 
         toShootR1 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(13.000, 59.000),
-                                new Pose(56.000, 80.000)
+                                new Pose(12.500, 60.500),
+                                new Pose(59.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(160), Math.toRadians(135))
+                .setLinearHeadingInterpolation(Math.toRadians(150), Math.toRadians(128))
                 .build();
 
         toRampCollect2 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(56.000, 80.000),
-                                new Pose(13.000, 59.000)
+                                new Pose(59.000, 80.000),
+                                new Pose(12.500, 60.500)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(160))
+                .setLinearHeadingInterpolation(Math.toRadians(128), Math.toRadians(150))
                 .build();
 
         toShootR2 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(13.000, 59.000),
-                                new Pose(56.000, 80.000)
+                                new Pose(12.500, 60.500),
+                                new Pose(59.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(160), Math.toRadians(135))
+                .setLinearHeadingInterpolation(Math.toRadians(150), Math.toRadians(128))
                 .build();
 
         toRampCollect3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(56.000, 80.000),
-                                new Pose(13.000, 59.000)
+                                new Pose(59.000, 80.000),
+                                new Pose(12.500, 60.500)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(160))
+                .setLinearHeadingInterpolation(Math.toRadians(128), Math.toRadians(150))
                 .build();
 
         toShootR3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(13.000, 59.000),
-                                new Pose(56.000, 80.000)
+                                new Pose(12.500, 60.500),
+                                new Pose(59.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(160), Math.toRadians(135))
+                .setLinearHeadingInterpolation(Math.toRadians(150), Math.toRadians(128))
                 .build();
 
         toRampCollect4 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(56.000, 80.000),
-                                new Pose(13.000, 59.000)
+                                new Pose(59.000, 80.000),
+                                new Pose(12.800, 60.200)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(160))
+                .setLinearHeadingInterpolation(Math.toRadians(128), Math.toRadians(150))
                 .build();
 
         toShootR4 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(13.000, 59.000),
-                                new Pose(56.000, 80.000)
+                                new Pose(12.800, 60.200),
+                                new Pose(59.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(160), Math.toRadians(135))
+                .setLinearHeadingInterpolation(Math.toRadians(150), Math.toRadians(128))
                 .build();
 
         toCollect1 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(56.000, 80.000),
+                                new Pose(59.000, 80.000),
                                 new Pose(18.000, 84.000)
                         )
                 )
@@ -428,16 +425,16 @@ public class BlueV6Close extends OpMode {
                 .addPath(
                         new BezierLine(
                                 new Pose(18.000, 84.000),
-                                new Pose(56.000, 80.000)
+                                new Pose(59.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(134))
                 .build();
 
         toCollect3 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(56.000, 80.000),
+                                new Pose(59.000, 80.000),
                                 new Pose(45.000, 27.000),
                                 new Pose(53.000, 37.000),
                                 new Pose(11.000, 35.000)
@@ -450,20 +447,20 @@ public class BlueV6Close extends OpMode {
                 .addPath(
                         new BezierLine(
                                 new Pose(11.000, 35.000),
-                                new Pose(56.000, 80.000)
+                                new Pose(59.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(134))
                 .build();
 
         toPark = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(56.000, 80.000),
+                                new Pose(59.000, 80.000),
                                 new Pose(46.000, 69.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(135))
+                .setConstantHeadingInterpolation(Math.toRadians(134))
                 .build();
 
         }

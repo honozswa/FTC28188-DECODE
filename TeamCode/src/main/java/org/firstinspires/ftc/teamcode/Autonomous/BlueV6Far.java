@@ -21,9 +21,9 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-@Autonomous(name = "Red-V6-Far",group = "Red")
+@Autonomous(name = "Blue-V6-Far",group = "Blue")
 @Configurable
-public class RedV6Far extends OpMode {
+public class BlueV6Far extends OpMode {
 
     private TelemetryManager panelsTelemetry;
     public Follower follower;
@@ -38,8 +38,8 @@ public class RedV6Far extends OpMode {
     private double HoodPos = 0;
 
     // Pose
-    private final Pose startPose = PoseConstant.RedFarAutoStartPose;
-    private static final Pose GOAL = PoseConstant.RED_GOAL;
+    private final Pose startPose = PoseConstant.BlueFarAutoStartPose;
+    private static final Pose GOAL = PoseConstant.BLUE_GOAL;
     private final ElapsedTime timer = new ElapsedTime();
     private enum PathState {
         toShootPreload,
@@ -263,79 +263,79 @@ public class RedV6Far extends OpMode {
         toShootPreload = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(96.000, 9.000),
-                                new Pose(86.000, 19.000)
+                                new Pose(48.000, 9.000),
+                                new Pose(58.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(67))
+                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(113))
                 .build();
 
         toCollectHuman1 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(86.000, 19.000),
-                                new Pose(135.000, 8.000)
+                                new Pose(58.000, 19.000),
+                                new Pose(9.000, 8.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         toShootHuman1 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(135.000, 8.000),
-                                new Pose(86.000, 19.000)
+                                new Pose(9.000, 8.000),
+                                new Pose(58.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(67))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(113))
                 .build();
 
         toCollect3 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(86.000, 19.000),
-                                new Pose(86.967, 36.850),
-                                new Pose(133.000, 35.000)
+                                new Pose(58.000, 19.000),
+                                new Pose(57.033, 36.850),
+                                new Pose(11.000, 35.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         toShootC3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(133.000, 35.000),
-                                new Pose(86.000, 19.000)
+                                new Pose(11.000, 35.000),
+                                new Pose(58.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(67))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(113))
                 .build();
 
         toCollectHuman2 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(86.000, 19.000),
-                                new Pose(133.000, 8.000)
+                                new Pose(58.000, 19.000),
+                                new Pose(11.000, 8.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         toShootHuman2 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(133.000, 8.000),
-                                new Pose(86.000, 19.000)
+                                new Pose(11.000, 8.000),
+                                new Pose(58.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(67))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(113))
                 .build();
 
         toCollect32 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(86.000, 19.000),
-                                new Pose(133.000, 35.000)
+                                new Pose(58.000, 19.000),
+                                new Pose(11.000, 35.000)
                         )
                 )
                 .setTangentHeadingInterpolation()
@@ -344,38 +344,38 @@ public class RedV6Far extends OpMode {
         toShootC32 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(133.000, 35.000),
-                                new Pose(86.000, 19.000)
+                                new Pose(11.000, 35.000),
+                                new Pose(58.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(19), Math.toRadians(67))
+                .setLinearHeadingInterpolation(Math.toRadians(161), Math.toRadians(113))
                 .build();
 
         toCollectHuman3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(86.000, 19.000),
-                                new Pose(133.000, 8.000)
+                                new Pose(58.000, 19.000),
+                                new Pose(11.000, 8.000)
                         )
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+                .setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         toShootHuman3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(133.000, 8.000),
-                                new Pose(86.000, 19.000)
+                                new Pose(11.000, 8.000),
+                                new Pose(58.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(67))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(113))
                 .build();
 
         toPark = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(86.000, 19.000),
-                                new Pose(92.121, 33.383)
+                                new Pose(58.000, 19.000),
+                                new Pose(51.880, 33.383)
                         )
                 )
                 .setTangentHeadingInterpolation()

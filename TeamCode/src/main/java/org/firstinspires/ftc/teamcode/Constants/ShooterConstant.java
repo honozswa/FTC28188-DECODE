@@ -33,9 +33,9 @@ public class ShooterConstant {
 
     /// Aimbot PID Coefficients
     // Odometry PID
-    public static final double odokP = 1.5;
+    public static final double odokP = 0.7;
     public static final double odokD = 0.05;
-    public static final double odoOffset = Math.toRadians(0); // Degrees (-) -> left
+    public static final double odoOffset = Math.toRadians(-3); // Degrees (-) -> left
 
     // Limelight PID
     public static final double llkP = 0.01;

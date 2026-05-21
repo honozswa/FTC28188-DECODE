@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-@TeleOp(name = "Debugger-Motor", group = "Debugger")
+@TeleOp(name = "Debugger-Motor", group = "Tuner")
 public class MotorDebugger extends OpMode {
 
     DcMotor motor;

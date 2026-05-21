@@ -37,7 +37,7 @@ public class BlueV6OpMode extends OpMode {
     private double FlywheelManualOffset = 0;
 
     // Intake
-    private boolean intakeOn = false;
+    private boolean intakeOn = true;
     private boolean lastFull = false;
 
     // Hood
@@ -134,6 +134,9 @@ public class BlueV6OpMode extends OpMode {
         subSystem();
         shooter.update();
         indicateFullBall();
+        if (gamepad1.bWasPressed()) {
+            resetPose();
+        }
 
         // Telemetry
         telemetry.addLine("-------------- Shooter ------------");
@@ -421,20 +424,24 @@ public class BlueV6OpMode extends OpMode {
     public void indicateFullBall() {
         boolean currentFull = shooter.isThreeBall();
         if (currentFull && !lastFull) {
-            gamepad1.rumble(500);
+            gamepad1.rumble(250);
         }
         lastFull = currentFull;
     }
 
     public void gateHeading() {
         if (gamepad1.right_trigger > 0.5) {
-            double targetHeading = Math.toRadians(150);
+            double targetHeading = Math.toRadians(180);
             double currentHeading = follower.getPose().getHeading();
             double error = Util.angleWrap(currentHeading - targetHeading);
             double rotateAssist = error * 0.5;
             rotateAssist = Range.clip(rotateAssist, -ShooterConstant.maxRotatePower, ShooterConstant.maxRotatePower);
             rotate = rotateAssist;
         }
+    }
+
+    public void resetPose() {
+        follower.setPose(PoseConstant.BlueResetPose);
     }
 
 }

@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.mechanism.ShooterV6;
 
-@TeleOp(name = "Debugger-IntakeSystem", group = "Debugger")
+@TeleOp(name = "Debugger-IntakeSystem", group = "Tuner")
 public class IntakeSensorDebugger extends OpMode {
 
     ShooterV6 shooter = new ShooterV6();

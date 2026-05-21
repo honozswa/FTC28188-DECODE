@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 import org.firstinspires.ftc.teamcode.mechanism.MecanumDrive;
 import org.firstinspires.ftc.teamcode.mechanism.Util;
 
-@TeleOp(name = "Debugger-FusionAimbot", group = "Debugger")
+@TeleOp(name = "Debugger-FusionAimbot", group = "Tuner")
 public class AimbotDebugger extends OpMode {
     private final MecanumDrive drive = new MecanumDrive();
     private Limelight3A limelight;

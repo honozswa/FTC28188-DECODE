@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.pedropathing.util.Timer;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.bylazar.configurables.annotations.Configurable;
@@ -9,9 +8,7 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.bylazar.telemetry.PanelsTelemetry;
 
 import org.firstinspires.ftc.teamcode.Constants.PoseConstant;
-import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 import org.firstinspires.ftc.teamcode.mechanism.MecanumDrive;
-import org.firstinspires.ftc.teamcode.mechanism.ShooterMax;
 import org.firstinspires.ftc.teamcode.mechanism.ShooterV6;
 import org.firstinspires.ftc.teamcode.mechanism.Util;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -34,7 +31,7 @@ public class RedV6Close extends OpMode {
 
     // ------ Mechanics Setup ------- //
     private MecanumDrive drive = new MecanumDrive();
-    private ShooterMax shooter = new ShooterMax();
+    private ShooterV6 shooter = new ShooterV6();
     private boolean shotsTriggered = false;
     private double targetVelocity = 0;
     private double filteredDistance = 36;
@@ -337,7 +334,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(85.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(49))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(52))
                 .build();
 
         toRampCollect1 = follower.pathBuilder()
@@ -347,7 +344,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(131.500, 60.500)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(49), Math.toRadians(30))
+                .setLinearHeadingInterpolation(Math.toRadians(52), Math.toRadians(30))
                 .build();
 
         toShootR1 = follower.pathBuilder()
@@ -357,7 +354,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(85.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(49))
+                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(52))
                 .build();
 
         toRampCollect2 = follower.pathBuilder()
@@ -367,7 +364,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(131.500, 60.500)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(49), Math.toRadians(30))
+                .setLinearHeadingInterpolation(Math.toRadians(52), Math.toRadians(30))
                 .build();
 
         toShootR2 = follower.pathBuilder()
@@ -377,7 +374,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(85.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(49))
+                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(52))
                 .build();
 
         toRampCollect3 = follower.pathBuilder()
@@ -387,7 +384,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(131.500, 60.500)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(49), Math.toRadians(30))
+                .setLinearHeadingInterpolation(Math.toRadians(52), Math.toRadians(30))
                 .build();
 
         toShootR3 = follower.pathBuilder()
@@ -397,7 +394,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(85.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(49))
+                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(52))
                 .build();
 
         toRampCollect4 = follower.pathBuilder()
@@ -407,7 +404,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(131.200, 60.200)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(49), Math.toRadians(30))
+                .setLinearHeadingInterpolation(Math.toRadians(52), Math.toRadians(30))
                 .build();
 
         toShootR4 = follower.pathBuilder()
@@ -417,7 +414,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(85.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(49))
+                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(52))
                 .build();
 
         toCollect1 = follower.pathBuilder()
