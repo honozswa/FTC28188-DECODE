@@ -10,6 +10,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import org.firstinspires.ftc.teamcode.Constants.PoseConstant;
 import org.firstinspires.ftc.teamcode.mechanism.MecanumDrive;
 import org.firstinspires.ftc.teamcode.mechanism.ShooterV6;
+import org.firstinspires.ftc.teamcode.mechanism.ShooterV6Far;
 import org.firstinspires.ftc.teamcode.mechanism.Util;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -31,7 +32,7 @@ public class RedV6Far extends OpMode {
 
     // ------ Mechanics Setup ------- //
     private MecanumDrive drive = new MecanumDrive();
-    private ShooterV6 shooter = new ShooterV6();
+    private ShooterV6Far shooter = new ShooterV6Far();
     private boolean shotsTriggered = false;
     private double targetVelocity = 0;
     private double filteredDistance = 36;
@@ -96,7 +97,7 @@ public class RedV6Far extends OpMode {
         autoFlywheel();
         autoHood();
 
-        targetVelocity = Range.clip(targetVelocity,0,1660);
+        targetVelocity = Range.clip(targetVelocity,0,1520);
         shooter.flywheelOn(targetVelocity);
         shooter.setHood(HoodPos);
 

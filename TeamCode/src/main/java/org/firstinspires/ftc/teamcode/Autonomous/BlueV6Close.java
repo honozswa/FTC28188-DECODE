@@ -307,7 +307,7 @@ public class BlueV6Close extends OpMode {
                                 new Pose(48.000, 95.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(139))
+                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(134))
                 .build();
 
         toCollect2 = follower.pathBuilder()
@@ -476,7 +476,7 @@ public class BlueV6Close extends OpMode {
     private void updateDistance() {
         Pose robotPose = follower.getPose();
         double rawDistance = drive.getDistanceToGoal(robotPose, GOAL);
-        filteredDistance = 0.8 * filteredDistance + 0.2 * rawDistance;
+        filteredDistance = 0 * filteredDistance + 1 * rawDistance;
     }
 
     private void autoFlywheel() {

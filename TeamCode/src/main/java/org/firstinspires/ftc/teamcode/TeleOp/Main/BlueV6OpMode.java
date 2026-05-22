@@ -110,6 +110,12 @@ public class BlueV6OpMode extends OpMode {
             goToParkPose();
             autoDriving = true;
         }
+        // Auto Gate
+        if (gamepad1.x && !autoDriving) {
+            goToGatePose();
+            autoDriving = true;
+        }
+        // Driver Override
         if(autoDriving && driverOverride()) {
             follower.breakFollowing();
             drive.stopDrive();
@@ -129,7 +135,6 @@ public class BlueV6OpMode extends OpMode {
         } else {
             manualDrive();
             Aimbot(limelight.getLatestResult());
-            lockHeading();
             drive.drive(forward,strafe,rotate);
         }
 
@@ -171,10 +176,9 @@ public class BlueV6OpMode extends OpMode {
         telemetry.addLine("Dpad U/D - AdjustFlywheelVel");
         telemetry.addLine("A - ToggleIntake");
         telemetry.addLine("B - ResetPose");
-        telemetry.addLine("X - ResetIntake");
+        telemetry.addLine("X - toGatePose");
         telemetry.addLine("Y - AutoPark");
         telemetry.addLine("RB - Shot");
-        telemetry.addLine("RT - TurnTo180degrees");
         telemetry.addLine("LB - LimelightAim");
         telemetry.addLine("LT - OdometryAim");
         telemetry.addLine("");
@@ -183,6 +187,7 @@ public class BlueV6OpMode extends OpMode {
         telemetry.addLine("Dpad L/R - AdjustFlywheel & FlywheelOffset");
         telemetry.addLine("X - AutoFlywheel");
         telemetry.addLine("Y - AutoHood");
+        telemetry.addLine("A - ResetIntake");
         telemetry.addLine("");
         telemetry.update();
     }
@@ -239,7 +244,7 @@ public class BlueV6OpMode extends OpMode {
         } else {
             shooter.intakeOff();
         }
-        if (gamepad1.x) {
+        if (gamepad2.a) {
             shooter.setReturnRequested();
         }
 //        shooter.setIntakeBoost(gamepad1.right_trigger > 0.5 || gamepad2.right_trigger > 0.5);
@@ -249,6 +254,12 @@ public class BlueV6OpMode extends OpMode {
             shooter.fireManualOn();
         } else {
             shooter.fireManualOff();
+        }
+
+        if (gamepad1.right_trigger > 0.5) {
+            shooter.farFireOn();
+        } else {
+            shooter.farFireOff();
         }
 
 
@@ -283,7 +294,7 @@ public class BlueV6OpMode extends OpMode {
                 // ===== ODOMETRY AIM =====
                 Pose robotPose = follower.getPose();
                 double targetHeading = drive.getAngleToGoal(robotPose, GOAL);
-                double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset);
+                double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset + ShooterConstant.blueOdoOffset);
                 double pTerm = error * ShooterConstant.odokP;
                 double dTerm = 0;
                 if (dt > 0) {
@@ -306,7 +317,7 @@ public class BlueV6OpMode extends OpMode {
             timer.reset();
             Pose robotPose = follower.getPose();
             double targetHeading = drive.getAngleToGoal(robotPose, GOAL);
-            double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset);
+            double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset + ShooterConstant.blueOdoOffset);
             double pTerm = error * ShooterConstant.odokP;
             double dTerm = 0;
             if (dt > 0) {
@@ -430,15 +441,16 @@ public class BlueV6OpMode extends OpMode {
         lastFull = currentFull;
     }
 
-    public void lockHeading() {
-        if (gamepad1.right_trigger > 0.5) {
-            double targetHeading = Math.toRadians(180);
-            double currentHeading = follower.getPose().getHeading();
-            double error = Util.angleWrap(currentHeading - targetHeading);
-            double rotateAssist = error * 0.5;
-            rotateAssist = Range.clip(rotateAssist, -ShooterConstant.maxRotatePower, ShooterConstant.maxRotatePower);
-            rotate = rotateAssist;
-        }
+    public void goToGatePose() {
+        PathChain shootPath = follower.pathBuilder()
+                .addPath(new BezierLine(
+                        follower.getPose(),
+                        PoseConstant.BlueGate
+                ))
+                .setLinearHeadingInterpolation(follower.getPose().getHeading(), PoseConstant.BlueGate.getHeading())
+                .build();
+
+        follower.followPath(shootPath);
     }
 
     public void resetPose() {

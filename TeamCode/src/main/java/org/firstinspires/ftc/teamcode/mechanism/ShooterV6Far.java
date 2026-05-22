@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 
-public class ShooterV6 {
+public class ShooterV6Far {
     private DcMotor intakeMotor, outtakeMotor;
     private DcMotorEx shootMotor, shootMotor2;
     private Servo HoodServo, HoodServo2, GateServo, GateServo2;
@@ -235,8 +235,8 @@ public class ShooterV6 {
 
             case Shot:
                 openGate();
-                intakeMotor.setPower(1);
-                outtakeMotor.setPower(1);
+                intakeMotor.setPower(0.6);
+                outtakeMotor.setPower(0.6);
                 boolean noBallDetected = !lowSensorDetected && !midSensorDetected && !highSensorDetected;
                 if (noBallDetected) {
                     if (!noBallTiming) {

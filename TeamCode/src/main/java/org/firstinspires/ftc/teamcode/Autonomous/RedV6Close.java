@@ -313,7 +313,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(96.000, 95.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(41))
+                .setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(46))
                 .build();
 
         toCollect2 = follower.pathBuilder()
@@ -334,7 +334,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(85.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(52))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(50.5))
                 .build();
 
         toRampCollect1 = follower.pathBuilder()
@@ -344,7 +344,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(131.500, 60.500)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(52), Math.toRadians(30))
+                .setLinearHeadingInterpolation(Math.toRadians(50.5), Math.toRadians(30))
                 .build();
 
         toShootR1 = follower.pathBuilder()
@@ -354,7 +354,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(85.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(52))
+                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(50.5))
                 .build();
 
         toRampCollect2 = follower.pathBuilder()
@@ -364,7 +364,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(131.500, 60.500)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(52), Math.toRadians(30))
+                .setLinearHeadingInterpolation(Math.toRadians(50.5), Math.toRadians(30))
                 .build();
 
         toShootR2 = follower.pathBuilder()
@@ -374,7 +374,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(85.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(52))
+                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(50.5))
                 .build();
 
         toRampCollect3 = follower.pathBuilder()
@@ -384,7 +384,7 @@ public class RedV6Close extends OpMode {
                                 new Pose(131.500, 60.500)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(52), Math.toRadians(30))
+                .setLinearHeadingInterpolation(Math.toRadians(50.5), Math.toRadians(30))
                 .build();
 
         toShootR3 = follower.pathBuilder()
@@ -394,27 +394,27 @@ public class RedV6Close extends OpMode {
                                 new Pose(85.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(52))
+                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(50.5))
                 .build();
 
         toRampCollect4 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
                                 new Pose(85.000, 80.000),
-                                new Pose(131.200, 60.200)
+                                new Pose(131.300, 60.300)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(52), Math.toRadians(30))
+                .setLinearHeadingInterpolation(Math.toRadians(50.5), Math.toRadians(30))
                 .build();
 
         toShootR4 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(131.200, 60.200),
+                                new Pose(131.300, 60.300),
                                 new Pose(85.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(52))
+                .setLinearHeadingInterpolation(Math.toRadians(30), Math.toRadians(50.5))
                 .build();
 
         toCollect1 = follower.pathBuilder()
@@ -481,7 +481,7 @@ public class RedV6Close extends OpMode {
     private void updateDistance() {
         Pose robotPose = follower.getPose();
         double rawDistance = drive.getDistanceToGoal(robotPose, GOAL);
-        filteredDistance = 0.8 * filteredDistance + 0.2 * rawDistance;
+        filteredDistance = 0 * filteredDistance + 1 * rawDistance;
     }
 
     private void autoFlywheel() {
