@@ -21,7 +21,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-@Autonomous(name = "Red-Close-21",group = "Red")
+@Autonomous(name = "Red-Close-21",group = "Test")
 @Configurable
 public class RedV6CloseMax extends OpMode {
 

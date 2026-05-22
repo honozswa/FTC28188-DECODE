@@ -21,7 +21,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-@Autonomous(name = "Blue-V6-Close")
+@Autonomous(name = "Blue-V6-Close", group = "Blue")
 @Configurable
 public class BlueV6Close extends OpMode {
 
