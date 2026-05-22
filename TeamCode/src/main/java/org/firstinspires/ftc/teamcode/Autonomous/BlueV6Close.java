@@ -335,7 +335,7 @@ public class BlueV6Close extends OpMode {
                 .addPath(
                         new BezierLine(
                                 new Pose(59.000, 80.000),
-                                new Pose(12.500, 60.500)
+                                new Pose(11.000, 62.000)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(128), Math.toRadians(150))
@@ -344,7 +344,7 @@ public class BlueV6Close extends OpMode {
         toShootR1 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(12.500, 60.500),
+                                new Pose(11.000, 62.000),
                                 new Pose(59.000, 80.000)
                         )
                 )
@@ -355,7 +355,7 @@ public class BlueV6Close extends OpMode {
                 .addPath(
                         new BezierLine(
                                 new Pose(59.000, 80.000),
-                                new Pose(12.500, 60.500)
+                                new Pose(11.000, 62.000)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(128), Math.toRadians(150))
@@ -364,7 +364,7 @@ public class BlueV6Close extends OpMode {
         toShootR2 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(12.500, 60.500),
+                                new Pose(11.000, 62.000),
                                 new Pose(59.000, 80.000)
                         )
                 )
@@ -375,7 +375,7 @@ public class BlueV6Close extends OpMode {
                 .addPath(
                         new BezierLine(
                                 new Pose(59.000, 80.000),
-                                new Pose(12.500, 60.500)
+                                new Pose(11.000, 62.000)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(128), Math.toRadians(150))
@@ -384,7 +384,7 @@ public class BlueV6Close extends OpMode {
         toShootR3 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(12.500, 60.500),
+                                new Pose(11.000, 62.000),
                                 new Pose(59.000, 80.000)
                         )
                 )
@@ -395,7 +395,7 @@ public class BlueV6Close extends OpMode {
                 .addPath(
                         new BezierLine(
                                 new Pose(59.000, 80.000),
-                                new Pose(12.800, 60.200)
+                                new Pose(11.000, 62.000)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(128), Math.toRadians(150))
@@ -404,7 +404,7 @@ public class BlueV6Close extends OpMode {
         toShootR4 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(12.800, 60.200),
+                                new Pose(11.000, 62.000),
                                 new Pose(59.000, 80.000)
                         )
                 )

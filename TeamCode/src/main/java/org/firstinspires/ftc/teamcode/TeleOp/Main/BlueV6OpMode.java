@@ -350,7 +350,7 @@ public class BlueV6OpMode extends OpMode {
     public void updateDistance() {
         Pose robotPose = follower.getPose();
         double rawDistance = drive.getDistanceToGoal(robotPose, GOAL);
-        filteredDistance = 0.8 * filteredDistance + 0.2 * rawDistance;
+        filteredDistance = 0 * filteredDistance + 1 * rawDistance;
     }
 
     public void autoFlywheel() {

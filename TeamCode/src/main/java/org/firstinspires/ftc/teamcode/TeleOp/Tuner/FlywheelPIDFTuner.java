@@ -13,10 +13,9 @@ public class FlywheelPIDFTuner extends OpMode {
     DcMotorEx shootMotor, shootMotor2;
     DcMotor intakeMotor, gateMotor;
     Servo GateServo;
-    double lowVelocity = 1200;
-    double midVelocity = 1700;
-    double highVelocity = 1700;
-    double curTargetVel = midVelocity;
+    double lowVelocity = 900;
+    double highVelocity = 1300;
+    double curTargetVel = highVelocity;
     double F = 0;
     double P = 0;
     double D = 0;
@@ -27,14 +26,14 @@ public class FlywheelPIDFTuner extends OpMode {
     public void init() {
         shootMotor = hardwareMap.get(DcMotorEx.class, "shootMotor");
         shootMotor2 = hardwareMap.get(DcMotorEx.class, "shootMotor2");
-//        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
-//        gateMotor = hardwareMap.get(DcMotor.class, "gateMotor");
-//        GateServo = hardwareMap.get(Servo.class, "GateServo");
+        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+        gateMotor = hardwareMap.get(DcMotor.class, "gateMotor");
+        GateServo = hardwareMap.get(Servo.class, "GateServo");
 
         shootMotor.setDirection(DcMotor.Direction.FORWARD);
         shootMotor2.setDirection(DcMotor.Direction.REVERSE);
-//        intakeMotor.setDirection(DcMotor.Direction.REVERSE);
-//        gateMotor.setDirection(DcMotor.Direction.FORWARD);
+        intakeMotor.setDirection(DcMotor.Direction.REVERSE);
+        gateMotor.setDirection(DcMotor.Direction.FORWARD);
 
         shootMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -49,9 +48,9 @@ public class FlywheelPIDFTuner extends OpMode {
     public void loop() {
 
         if (gamepad1.yWasPressed()) {
-            if (curTargetVel == midVelocity) {
+            if (curTargetVel == highVelocity) {
                 curTargetVel = lowVelocity;
-            } else { curTargetVel = midVelocity; }
+            } else { curTargetVel = highVelocity; }
         }
 
         if (gamepad1.bWasPressed()) {
@@ -92,14 +91,14 @@ public class FlywheelPIDFTuner extends OpMode {
         double curVel = shootMotor.getVelocity();
         double error = curTargetVel - curVel;
 
-//        if (gamepad1.right_bumper) {
-//            GateServo.setPosition(0);
-//            intakeMotor.setPower(1);
-//            gateMotor.setPower(1);
-//        } else {
-//            intakeMotor.setPower(0);
-//            gateMotor.setPower(0);
-//        }
+        if (gamepad1.right_bumper) {
+            GateServo.setPosition(0);
+            intakeMotor.setPower(1);
+            gateMotor.setPower(1);
+        } else {
+            intakeMotor.setPower(0);
+            gateMotor.setPower(0);
+        }
 
         telemetry.addData("Target Vel", curTargetVel);
         telemetry.addData("Current Vel","%.2f", curVel);
