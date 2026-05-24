@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 import org.firstinspires.ftc.teamcode.mechanism.MecanumDrive;
 import org.firstinspires.ftc.teamcode.mechanism.Util;
 
-@TeleOp(name = "Debugger-FusionAimbot", group = "Tuner")
+//@TeleOp(name = "Debugger-FusionAimbot", group = "Tuner")
 public class AimbotDebugger extends OpMode {
     private final MecanumDrive drive = new MecanumDrive();
     private Limelight3A limelight;
@@ -83,7 +83,7 @@ public class AimbotDebugger extends OpMode {
                 telemetry.addLine("");
             } else {
                 Pose robotPose = follower.getPose();
-                double targetHeading = drive.getAngleToGoal(robotPose, GOAL);
+                double targetHeading = Util.getAngleToGoal(robotPose, GOAL);
                 double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset);
                 double pTerm = error * ShooterConstant.odokP;
                 double dTerm = 0;

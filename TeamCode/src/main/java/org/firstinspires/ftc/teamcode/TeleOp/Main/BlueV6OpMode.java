@@ -19,14 +19,13 @@ import org.firstinspires.ftc.teamcode.mechanism.Util;
 
 @TeleOp(name = "Blue-V6-OpMode", group = "Main")
 public class BlueV6OpMode extends OpMode {
-    MecanumDrive drive = new MecanumDrive();
     Follower follower;
+    MecanumDrive drive = new MecanumDrive();
     ShooterV6 shooter = new ShooterV6();
     private Limelight3A limelight;
 
     // Drivetrain
     double forward = 0, strafe = 0, rotate = 0;
-    double curForward = 0, curStrafe = 0;
 
     // Flywheel
     double targetVelocity = 0;
@@ -88,9 +87,15 @@ public class BlueV6OpMode extends OpMode {
     @Override
     public void loop() {
 
+        // Pose Reset
         if (gamepad1.bWasPressed()) {
             resetPose();
         }
+        if (gamepad2.leftBumperWasPressed()) {
+            resetFarPose();
+        }
+
+        // Update Follower
         follower.update();
 
         // Automatic Flywheel and Hood
@@ -106,36 +111,28 @@ public class BlueV6OpMode extends OpMode {
         autoHood();
 
         // Auto Park
-        if(gamepad1.y && !autoDriving) {
+        if(gamepad1.yWasPressed() && !autoDriving) {
             goToParkPose();
             autoDriving = true;
         }
         // Auto Gate
-        if (gamepad1.x && !autoDriving) {
+        if (gamepad1.xWasPressed() && !autoDriving) {
             goToGatePose();
             autoDriving = true;
-        }
-        // Driver Override
-        if(autoDriving && driverOverride()) {
-            follower.breakFollowing();
-            drive.stopDrive();
-            drive.setBrake();
-            autoDriving = false;
         }
 
         // Drive Control
         if(autoDriving) {
-            follower.update();
-            if(!follower.isBusy()) {
+            if(!follower.isBusy() || driverOverride()) {
                 follower.breakFollowing();
                 drive.stopDrive();
-                autoDriving = false;
                 drive.setBrake();
+                autoDriving = false;
             }
         } else {
             manualDrive();
             Aimbot(limelight.getLatestResult());
-            drive.drive(forward,strafe,rotate);
+            drive.drive(forward, strafe, rotate);
         }
 
         // Subsystem
@@ -160,7 +157,7 @@ public class BlueV6OpMode extends OpMode {
         telemetry.addData("Hood Offset", HoodOffset);
         telemetry.addLine("");
         telemetry.addLine("-------------- Pose ------------");
-        telemetry.addData("Distance", drive.getDistanceToGoal(follower.getPose(),GOAL));
+        telemetry.addData("Distance", Util.getDistanceToGoal(follower.getPose(),GOAL));
         telemetry.addData("X", follower.getPose().getX());
         telemetry.addData("Y", follower.getPose().getY());
         telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
@@ -175,10 +172,11 @@ public class BlueV6OpMode extends OpMode {
         telemetry.addLine("left/right stick - MecanumDrive");
         telemetry.addLine("Dpad U/D - AdjustFlywheelVel");
         telemetry.addLine("A - ToggleIntake");
-        telemetry.addLine("B - ResetPose");
+        telemetry.addLine("B - ResetClosePose");
         telemetry.addLine("X - toGatePose");
         telemetry.addLine("Y - AutoPark");
         telemetry.addLine("RB - Shot");
+        telemetry.addLine("RT - SlowShot");
         telemetry.addLine("LB - LimelightAim");
         telemetry.addLine("LT - OdometryAim");
         telemetry.addLine("");
@@ -188,6 +186,7 @@ public class BlueV6OpMode extends OpMode {
         telemetry.addLine("X - AutoFlywheel");
         telemetry.addLine("Y - AutoHood");
         telemetry.addLine("A - ResetIntake");
+        telemetry.addLine("LB - ResetFarPose");
         telemetry.addLine("");
         telemetry.update();
     }
@@ -202,9 +201,9 @@ public class BlueV6OpMode extends OpMode {
         PathChain shootPath = follower.pathBuilder()
                 .addPath(new BezierLine(
                         follower.getPose(),
-                        PoseConstant.BluePark
+                        follower.getPose()
                 ))
-                .setConstantHeadingInterpolation(follower.getPose().getHeading())
+                .setConstantHeadingInterpolation(PoseConstant.BluePark.getHeading())
                 .build();
 
         follower.followPath(shootPath);
@@ -214,15 +213,6 @@ public class BlueV6OpMode extends OpMode {
         strafe = gamepad1.left_stick_x;
         forward = -gamepad1.left_stick_y;
         rotate = gamepad1.right_stick_x;
-    }
-
-    private double rampTowardsTarget(double current, double target, double rate) {
-        double delta = target - current;
-        if (Math.abs(delta) > rate) {
-            return current + Math.signum(delta) * rate;
-        } else {
-            return target;
-        }
     }
 
     public boolean driverOverride() {
@@ -293,7 +283,7 @@ public class BlueV6OpMode extends OpMode {
             } else {
                 // ===== ODOMETRY AIM =====
                 Pose robotPose = follower.getPose();
-                double targetHeading = drive.getAngleToGoal(robotPose, GOAL);
+                double targetHeading = Util.getAngleToGoal(robotPose, GOAL);
                 double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset + ShooterConstant.blueOdoOffset);
                 double pTerm = error * ShooterConstant.odokP;
                 double dTerm = 0;
@@ -316,7 +306,7 @@ public class BlueV6OpMode extends OpMode {
             double dt = timer.seconds();
             timer.reset();
             Pose robotPose = follower.getPose();
-            double targetHeading = drive.getAngleToGoal(robotPose, GOAL);
+            double targetHeading = Util.getAngleToGoal(robotPose, GOAL);
             double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset + ShooterConstant.blueOdoOffset);
             double pTerm = error * ShooterConstant.odokP;
             double dTerm = 0;
@@ -360,7 +350,7 @@ public class BlueV6OpMode extends OpMode {
 
     public void updateDistance() {
         Pose robotPose = follower.getPose();
-        double rawDistance = drive.getDistanceToGoal(robotPose, GOAL);
+        double rawDistance = Util.getDistanceToGoal(robotPose, GOAL);
         filteredDistance = 0 * filteredDistance + 1 * rawDistance;
     }
 
@@ -455,6 +445,10 @@ public class BlueV6OpMode extends OpMode {
 
     public void resetPose() {
         follower.setPose(PoseConstant.BlueResetPose);
+    }
+
+    public void resetFarPose() {
+        follower.setPose(PoseConstant.BlueFarResetPose);
     }
 
 }

@@ -1,8 +1,26 @@
 package org.firstinspires.ftc.teamcode.mechanism;
 
+import com.pedropathing.geometry.Pose;
+
 import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 
 public class Util {
+
+    public static double getDistanceToGoal(Pose robotPose, Pose goalPose) {
+
+        double dx = goalPose.getX() - robotPose.getX();
+        double dy = goalPose.getY() - robotPose.getY();
+
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+
+    public static double getAngleToGoal(Pose robotPose, Pose goalPose) {
+
+        double dx = goalPose.getX() - robotPose.getX();
+        double dy = goalPose.getY() - robotPose.getY();
+
+        return Math.atan2(dy, dx);
+    }
 
     public static double getFlywheelVelocityFromDistance(double distance) {
         return -0.00000662896 * Math.pow(distance, 4)

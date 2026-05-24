@@ -48,7 +48,7 @@ public class OdometryAimTuner extends OpMode {
         follower.update();
 
         // Mecanum Drive Input
-        forward =- gamepad1.left_stick_y;
+        forward = -gamepad1.left_stick_y;
         strafe = gamepad1.left_stick_x;
         rotate = gamepad1.right_stick_x;
 
@@ -103,7 +103,7 @@ public class OdometryAimTuner extends OpMode {
             double dt = timer.seconds();
             timer.reset();
             Pose robotPose = follower.getPose();
-            double targetHeading = drive.getAngleToGoal(robotPose, GOAL);
+            double targetHeading = Util.getAngleToGoal(robotPose, GOAL);
             double error = Util.angleWrap(robotPose.getHeading() - targetHeading + Offset);
             double pTerm = error * kP;
             double dTerm = 0;

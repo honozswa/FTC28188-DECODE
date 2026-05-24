@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.mechanism.DistanceSensor;
 
-@TeleOp(name = "Debugger-DistanceSensor", group = "Tuner")
+//@TeleOp(name = "Debugger-DistanceSensor", group = "Tuner")
 public class DistanceSensorDebugger extends OpMode {
 
     DistanceSensor distanceSensor = new DistanceSensor();

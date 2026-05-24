@@ -51,20 +51,4 @@ public class MecanumDrive {
         rightBack.setPower(0);
     }
 
-    public double getDistanceToGoal(Pose robotPose, Pose goalPose) {
-
-        double dx = goalPose.getX() - robotPose.getX();
-        double dy = goalPose.getY() - robotPose.getY();
-
-        return Math.sqrt(dx*dx + dy*dy);
-    }
-
-    public double getAngleToGoal(Pose robotPose, Pose goalPose) {
-
-        double dx = goalPose.getX() - robotPose.getX();
-        double dy = goalPose.getY() - robotPose.getY();
-
-        return Math.atan2(dy, dx);
-    }
-
 }
