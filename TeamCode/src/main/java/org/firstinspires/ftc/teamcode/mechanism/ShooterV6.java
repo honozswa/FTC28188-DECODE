@@ -117,8 +117,8 @@ public class ShooterV6 {
                 break;
 
             case Intake:
-                intakeMotor.setPower(1);
-                outtakeMotor.setPower(1);
+                intakeMotor.setPower(intakeBoost ? 1 : 0);
+                outtakeMotor.setPower(intakeBoost ? 1 : 0);
                 closeGate();
                 if (!intakeisOn) {
                     shooterState = ShooterState.Idle;
@@ -142,27 +142,28 @@ public class ShooterV6 {
                 break;
 
             case Hold:
-                intakeMotor.setPower(1);
+                intakeMotor.setPower(intakeBoost ? 1 : 0);
+                outtakeMotor.setPower(outtakeisOn ? 0.65 : 0);
                 closeGate();
                 if (!intakeisOn) {
                     shooterState = ShooterState.Idle;
                 }
-                if (highSensorDetected && midSensorDetected && lowSensorDetected) {
-                    outtakeTiming = false;
-                    stateTimer.reset();
-                    shooterState = ShooterState.ThreeBall;
-                }
-                if (highSensorDetected && midSensorDetected && !lowSensorDetected) {
-                    if (!outtakeTiming) {
-                        outtakeTiming = true;
-                        outtakeTimer.reset();
-                    }
-                    if (outtakeTimer.seconds() > 0.5) {
-                        outtakeMotor.setPower(0);
-                    }
-                } else {
-                    outtakeMotor.setPower(0.65);
-                }
+//                if (highSensorDetected && midSensorDetected && lowSensorDetected) {
+//                    outtakeTiming = false;
+//                    stateTimer.reset();
+//                    shooterState = ShooterState.ThreeBall;
+//                }
+//                if (highSensorDetected && midSensorDetected && !lowSensorDetected) {
+//                    if (!outtakeTiming) {
+//                        outtakeTiming = true;
+//                        outtakeTimer.reset();
+//                    }
+//                    if (outtakeTimer.seconds() > 0.5) {
+//                        outtakeMotor.setPower(0);
+//                    }
+//                } else {
+//                    outtakeMotor.setPower(0.65);
+//                }
 
                 if (shotRequested) {
                     shotRequested = false;
@@ -180,7 +181,7 @@ public class ShooterV6 {
                 break;
 
             case ThreeBall:
-                if (stateTimer.seconds() > 0.5) {
+                if (stateTimer.seconds() > 1.5) {
                     intakeMotor.setPower(0);
                     outtakeMotor.setPower(0);
                     closeGate();
@@ -214,10 +215,10 @@ public class ShooterV6 {
                         shooterState = ShooterState.Intake;
                     }
                 }
-                if (!highSensorDetected || !midSensorDetected || !lowSensorDetected) {
-                    stateTimer.reset();
-                    shooterState = ShooterState.Intake;
-                }
+//                if (!highSensorDetected || !midSensorDetected || !lowSensorDetected) {
+//                    stateTimer.reset();
+//                    shooterState = ShooterState.Intake;
+//                }
                 if (shotRequested) {
                     shotRequested = false;
                     stateTimer.reset();
@@ -318,7 +319,7 @@ public class ShooterV6 {
 
     public void fullBall() {
         stateTimer.reset();
-        shooterState = ShooterState.Hold;
+        shooterState = ShooterState.ThreeBall;
     }
 
     public void flywheelOn(double vel) {

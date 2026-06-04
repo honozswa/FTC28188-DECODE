@@ -21,6 +21,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name = "Red-Close-Coop",group = "Red")
 @Configurable
+
 public class RedCloseCoop extends OpMode {
 
     private TelemetryManager panelsTelemetry;
@@ -38,6 +39,7 @@ public class RedCloseCoop extends OpMode {
     private final Pose startPose = PoseConstant.RedCloseAutoStartPose;
     private static final Pose GOAL = PoseConstant.RED_GOAL;
     private final ElapsedTime timer = new ElapsedTime();
+    private boolean manualFlywheel = false;
     private enum PathState {
         toShootPreload,
         toShootC1,
@@ -100,7 +102,9 @@ public class RedCloseCoop extends OpMode {
         autoHood();
 
         targetVelocity = Range.clip(targetVelocity,0,1500);
-        shooter.flywheelOn(targetVelocity);
+
+        if (!manualFlywheel) { shooter.flywheelOn(targetVelocity); }
+
         shooter.setHood(HoodPos);
 
         autonomousPathUpdate();
@@ -127,44 +131,23 @@ public class RedCloseCoop extends OpMode {
 
             case toShootPreload:
                 shooter.intakeOn();
+                shooter.setIntakeBoost(true);
+                shooter.outtakeOn();
                 shooter.fullBall();
                 follower.followPath(toShootPreload, true);
-                setPathState(PathState.toCollect1);
-                break;
-
-            case toCollect1:
-                if (!follower.isBusy()) {
-                    if (!shotsTriggered) {
-                        shooter.fireShot();
-                        shotsTriggered = true;
-                    } else if (!shooter.isBusy()) {
-                        follower.followPath(toCollect1);
-                        setPathState(PathState.toOpenGate1);
-                    }
-                }
-                break;
-
-            case toOpenGate1:
-                if (!follower.isBusy()) {
-                    follower.followPath(toOpenGate1);
-                    setPathState(PathState.toShootC1);
-                }
-                break;
-
-            case toShootC1:
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 1.2) {
-                    follower.followPath(toShootC1, true);
-                    setPathState(PathState.toCollect2);
-                }
+                setPathState(PathState.toCollect2);
                 break;
 
             case toCollect2:
+                manualFlywheel = true;
+                shooter.flywheelOn(targetVelocity-20);
                 if (!follower.isBusy()) {
                     if (!shotsTriggered) {
                         shooter.fireShot();
                         shotsTriggered = true;
                     } else if (!shooter.isBusy()) {
                         follower.followPath(toCollect2);
+                        manualFlywheel = false;
                         setPathState(PathState.toOpenGate2);
                     }
                 }
@@ -178,7 +161,7 @@ public class RedCloseCoop extends OpMode {
                 break;
 
             case toShootC2:
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 1.2) {
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 1.5) {
                     follower.followPath(toShootC2, true);
                     setPathState(PathState.toRampCollect1);
                 }
@@ -197,7 +180,8 @@ public class RedCloseCoop extends OpMode {
                 break;
 
             case toShootR1:
-                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 2.67 || shooter.isThreeBall())) {
+                if ((!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2.67)  && (pathTimer.getElapsedTimeSeconds() > 2.67 || shooter.isThreeBall())) {
+                    shooter.fullBall();
                     follower.followPath(toShootR1, true);
                     setPathState(PathState.toRampCollect2);
                 }
@@ -216,7 +200,8 @@ public class RedCloseCoop extends OpMode {
                 break;
 
             case toShootR2:
-                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 2.67 || shooter.isThreeBall())) {
+                if ((!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2.67)  && (pathTimer.getElapsedTimeSeconds() > 2.67 || shooter.isThreeBall())) {
+                    shooter.fullBall();
                     follower.followPath(toShootR2, true);
                     setPathState(PathState.toRampCollect3);
                 }
@@ -235,8 +220,28 @@ public class RedCloseCoop extends OpMode {
                 break;
 
             case toShootR3:
-                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 2.67 || shooter.isThreeBall())) {
+                if ((!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2.67)  && (pathTimer.getElapsedTimeSeconds() > 2.67 || shooter.isThreeBall())) {
+                    shooter.fullBall();
                     follower.followPath(toShootR3, true);
+                    setPathState(PathState.toCollect1);
+                }
+                break;
+
+            case toCollect1:
+                if (!follower.isBusy() && shooter.getFlywheelVel1() > targetVelocity - 100) {
+                    if (!shotsTriggered) {
+                        shooter.fireShot();
+                        shotsTriggered = true;
+                    } else if (!shooter.isBusy()) {
+                        follower.followPath(toCollect1);
+                        setPathState(PathState.toShootC1);
+                    }
+                }
+                break;
+
+            case toShootC1:
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 1.2) {
+                    follower.followPath(toShootC1, true);
                     setPathState(PathState.Finished);
                 }
                 break;
@@ -273,51 +278,19 @@ public class RedCloseCoop extends OpMode {
         toShootPreload = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(96.000, 135.000),
+                                new Pose(125.000, 119.000),
                                 new Pose(96.000, 95.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(40))
-                .build();
-
-        toCollect1 = follower.pathBuilder()
-                .addPath(
-                        new BezierCurve(
-                                new Pose(96.000, 95.000),
-                                new Pose(94.869, 79.958),
-                                new Pose(126.000, 84.000)
-                        )
-                )
-                .setConstantHeadingInterpolation(Math.toRadians(0))
-                .build();
-
-        toOpenGate1 = follower.pathBuilder()
-                .addPath(
-                        new BezierCurve(
-                                new Pose(126.000, 84.000),
-                                new Pose(115.895, 80.011),
-                                new Pose(128.276, 74.283)
-                        )
-                )
-                .setConstantHeadingInterpolation(Math.toRadians(0))
-                .build();
-
-        toShootC1 = follower.pathBuilder()
-                .addPath(
-                        new BezierLine(
-                                new Pose(128.276, 74.283),
-                                new Pose(85.000, 80.000)
-                        )
-                )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(46))
+                .setLinearHeadingInterpolation(Math.toRadians(39), Math.toRadians(41))
                 .build();
 
         toCollect2 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(85.000, 80.000),
-                                new Pose(95.000, 53.832),
-                                new Pose(136.000, 56.000)
+                                new Pose(96.000, 95.000),
+                                new Pose(93.654, 47.776),
+                                new Pose(132.000, 56.000)
                         )
                 )
                 .setConstantHeadingInterpolation(Math.toRadians(0))
@@ -326,7 +299,7 @@ public class RedCloseCoop extends OpMode {
         toOpenGate2 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(136.000, 56.000),
+                                new Pose(132.000, 56.000),
                                 new Pose(111.848, 56.206),
                                 new Pose(128.444, 66.654)
                         )
@@ -338,71 +311,98 @@ public class RedCloseCoop extends OpMode {
                 .addPath(
                         new BezierCurve(
                                 new Pose(128.444, 66.654),
-                                new Pose(102.535, 68.227),
+                                new Pose(100.516, 65.535),
                                 new Pose(85.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(50.5))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(49))
                 .build();
 
         toRampCollect1 = follower.pathBuilder()
                 .addPath(
-                        new BezierLine(
+                        new BezierCurve(
                                 new Pose(85.000, 80.000),
-                                new Pose(133.000, 59.000)
+                                new Pose(107.000, 60.000),
+                                new Pose(132.000, 59.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(50.5), Math.toRadians(28))
+                .setConstantHeadingInterpolation(Math.toRadians(29))
                 .build();
 
         toShootR1 = follower.pathBuilder()
                 .addPath(
-                        new BezierLine(
-                                new Pose(133.000, 59.000),
+                        new BezierCurve(
+                                new Pose(132.000, 59.000),
+                                new Pose(126.911, 35.000),
                                 new Pose(85.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(28), Math.toRadians(50.5))
+                .setLinearHeadingInterpolation(Math.toRadians(29), Math.toRadians(55.5))
                 .build();
 
         toRampCollect2 = follower.pathBuilder()
                 .addPath(
-                        new BezierLine(
+                        new BezierCurve(
                                 new Pose(85.000, 80.000),
-                                new Pose(133.000, 59.000)
+                                new Pose(107.000, 60.000),
+                                new Pose(132.000, 59.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(50.5), Math.toRadians(28))
+                .setConstantHeadingInterpolation(Math.toRadians(29))
                 .build();
 
         toShootR2 = follower.pathBuilder()
                 .addPath(
-                        new BezierLine(
-                                new Pose(133.000, 59.000),
+                        new BezierCurve(
+                                new Pose(132.000, 59.000),
+                                new Pose(126.911, 35.000),
                                 new Pose(85.000, 80.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(28), Math.toRadians(50.5))
+                .setLinearHeadingInterpolation(Math.toRadians(29), Math.toRadians(55))
                 .build();
 
         toRampCollect3 = follower.pathBuilder()
                 .addPath(
-                        new BezierLine(
+                        new BezierCurve(
                                 new Pose(85.000, 80.000),
-                                new Pose(133.000, 59.000)
+                                new Pose(107.000, 60.000),
+                                new Pose(132.000, 59.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(50.5), Math.toRadians(28))
+                .setConstantHeadingInterpolation(Math.toRadians(29))
                 .build();
 
         toShootR3 = follower.pathBuilder()
                 .addPath(
+                        new BezierCurve(
+                                new Pose(132.000, 59.000),
+                                new Pose(126.911, 35.000),
+                                new Pose(85.000, 80.000)
+                        )
+                )
+                .setLinearHeadingInterpolation(Math.toRadians(29), Math.toRadians(55))
+                .build();
+
+        toCollect1 = follower.pathBuilder()
+                .addPath(
+                        new BezierCurve(
+                                new Pose(85.000, 80.000),
+                                new Pose(94.869, 79.958),
+                                new Pose(126.000, 84.000)
+                        )
+                )
+                .setConstantHeadingInterpolation(Math.toRadians(0))
+                .build();
+
+        toShootC1 = follower.pathBuilder()
+                .addPath(
                         new BezierLine(
-                                new Pose(133.000, 59.000),
+                                new Pose(126.000, 84.000),
                                 new Pose(90.000, 110.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(28), Math.toRadians(31))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(33))
                 .build();
 
     }
@@ -422,7 +422,7 @@ public class RedCloseCoop extends OpMode {
 
     private void autoFlywheel() {
         double distance = filteredDistance;
-        targetVelocity = Util.getFlywheelVelocityFromDistance(distance) + 20;
+        targetVelocity = Util.getFlywheelVelocityFromDistance(distance)-20;
     }
 
     private void autoHood() {

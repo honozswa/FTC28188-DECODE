@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Constants.PoseConstant;
+import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 import org.firstinspires.ftc.teamcode.mechanism.ShooterV6;
 import org.firstinspires.ftc.teamcode.mechanism.Util;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -33,6 +34,7 @@ public class RedFarGamma extends OpMode {
     private double targetVelocity = 0;
     private double filteredDistance = 36;
     private double HoodPos = 0;
+    private double targetHeading = 0;
 
     // Pose
     private final Pose startPose = PoseConstant.RedFarAutoStartPose;
@@ -54,6 +56,7 @@ public class RedFarGamma extends OpMode {
         toShootBall4,
         Finished,
         toPark,
+        Aiming,
         Idle
     }
     PathState pathState;
@@ -123,6 +126,8 @@ public class RedFarGamma extends OpMode {
 
             case toShootPreload:
                 shooter.intakeOn();
+                shooter.setIntakeBoost(true);
+                shooter.outtakeOn();
                 shooter.fullBall();
                 follower.followPath(toShootPreload, true);
                 setPathState(PathState.toCollect3);
@@ -142,6 +147,7 @@ public class RedFarGamma extends OpMode {
 
             case toShootC3:
                 if (!follower.isBusy()) {
+                    shooter.fullBall();
                     follower.followPath(toShootC3, true);
                     setPathState(PathState.toCollectHuman1);
                 }
@@ -161,6 +167,7 @@ public class RedFarGamma extends OpMode {
 
             case toShootHuman1:
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2.5) {
+                    shooter.fullBall();
                     follower.followPath(toShootHuman1, true);
                     setPathState(PathState.toBall1);
                 }
@@ -180,6 +187,7 @@ public class RedFarGamma extends OpMode {
 
             case toShootBall1:
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
+                    shooter.fullBall();
                     follower.followPath(toShootBall1, true);
                     setPathState(PathState.toBall2);
                 }
@@ -199,6 +207,7 @@ public class RedFarGamma extends OpMode {
 
             case toShootBall2:
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
+                    shooter.fullBall();
                     follower.followPath(toShootBall2, true);
                     setPathState(PathState.toBall3);
                 }
@@ -218,6 +227,7 @@ public class RedFarGamma extends OpMode {
 
             case toShootBall3:
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
+                    shooter.fullBall();
                     follower.followPath(toShootBall3, true);
                     setPathState(PathState.toBall4);
 
@@ -238,6 +248,7 @@ public class RedFarGamma extends OpMode {
 
             case toShootBall4:
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
+                    shooter.fullBall();
                     follower.followPath(toShootBall4, true);
                     setPathState(PathState.Finished);
 
@@ -250,6 +261,7 @@ public class RedFarGamma extends OpMode {
                         shooter.fireShot();
                         shotsTriggered = true;
                     } else if (!shooter.isBusy()) {
+                        shooter.fullBall();
                         setPathState(PathState.toPark);
                     }
                 }
@@ -349,7 +361,7 @@ public class RedFarGamma extends OpMode {
                                 new Pose(86.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(67))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(68))
                 .build();
 
         toBall2 = follower.pathBuilder()
@@ -369,7 +381,7 @@ public class RedFarGamma extends OpMode {
                                 new Pose(86.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(68))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(69))
                 .build();
 
         toBall3 = follower.pathBuilder()
@@ -389,7 +401,7 @@ public class RedFarGamma extends OpMode {
                                 new Pose(86.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(68))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(69))
                 .build();
 
         toBall4 = follower.pathBuilder()
@@ -439,7 +451,7 @@ public class RedFarGamma extends OpMode {
 
     private void autoFlywheel() {
         double distance = filteredDistance;
-        targetVelocity = Util.getFlywheelVelocityFromDistance(distance) - 20;
+        targetVelocity = Util.getFlywheelVelocityFromDistance(distance)-10;
     }
 
     private void autoHood() {

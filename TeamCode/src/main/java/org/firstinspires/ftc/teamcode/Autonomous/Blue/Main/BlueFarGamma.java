@@ -14,8 +14,11 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.Autonomous.Red.Main.RedFarGamma;
 import org.firstinspires.ftc.teamcode.Constants.PoseConstant;
+import org.firstinspires.ftc.teamcode.Constants.ShooterConstant;
 import org.firstinspires.ftc.teamcode.mechanism.ShooterV6;
+import org.firstinspires.ftc.teamcode.mechanism.ShooterV6Far;
 import org.firstinspires.ftc.teamcode.mechanism.Util;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -28,16 +31,17 @@ public class BlueFarGamma extends OpMode {
     private Timer pathTimer, opmodeTimer;
 
     // ------ Mechanics Setup ------- //
-    private ShooterV6 shooter = new ShooterV6();
+    private ShooterV6Far shooter = new ShooterV6Far();
     private boolean shotsTriggered = false;
     private double targetVelocity = 0;
     private double filteredDistance = 36;
     private double HoodPos = 0;
 
     // Pose
-    private final Pose startPose = PoseConstant.RedFarAutoStartPose;
-    private static final Pose GOAL = PoseConstant.RED_GOAL;
+    private final Pose startPose = PoseConstant.BlueFarAutoStartPose;
+    private static final Pose GOAL = PoseConstant.BLUE_GOAL;
     private final ElapsedTime timer = new ElapsedTime();
+    private boolean atShootPose = false;
     private enum PathState {
         toShootPreload,
         toCollect3,
@@ -101,6 +105,8 @@ public class BlueFarGamma extends OpMode {
 
         autonomousPathUpdate();
 
+        atShootPose = Math.abs(follower.getPose().getX() - 58) < 1.5 && Math.abs(follower.getPose().getY() - 19) < 1.5;
+
         PoseConstant.AutoEndPose = follower.getPose();
         PoseConstant.hasAutoPose = true;
 
@@ -123,6 +129,8 @@ public class BlueFarGamma extends OpMode {
 
             case toShootPreload:
                 shooter.intakeOn();
+                shooter.setIntakeBoost(true);
+                shooter.outtakeOn();
                 shooter.fullBall();
                 follower.followPath(toShootPreload, true);
                 setPathState(PathState.toCollect3);
@@ -142,6 +150,7 @@ public class BlueFarGamma extends OpMode {
 
             case toShootC3:
                 if (!follower.isBusy()) {
+                    shooter.fullBall();
                     follower.followPath(toShootC3, true);
                     setPathState(PathState.toCollectHuman1);
                 }
@@ -160,14 +169,15 @@ public class BlueFarGamma extends OpMode {
                 break;
 
             case toShootHuman1:
-                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2.5) {
-                    follower.followPath(toShootHuman1, true);
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
+                    shooter.fullBall();
+                    follower.followPath(toShootHuman1);
                     setPathState(PathState.toBall1);
                 }
                 break;
 
             case toBall1:
-                if (!follower.isBusy() && (shooter.getFlywheelVel1() > targetVelocity - 100 || pathTimer.getElapsedTimeSeconds() > 1.5)) {
+                if (!follower.isBusy() && atShootPose) {
                     if (!shotsTriggered) {
                         shooter.fireShot();
                         shotsTriggered = true;
@@ -180,13 +190,14 @@ public class BlueFarGamma extends OpMode {
 
             case toShootBall1:
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
-                    follower.followPath(toShootBall1, true);
+                    shooter.fullBall();
+                    follower.followPath(toShootBall1);
                     setPathState(PathState.toBall2);
                 }
                 break;
 
             case toBall2:
-                if (!follower.isBusy() && (shooter.getFlywheelVel1() > targetVelocity - 100 || pathTimer.getElapsedTimeSeconds() > 1.5)) {
+                if (!follower.isBusy() && atShootPose) {
                     if (!shotsTriggered) {
                         shooter.fireShot();
                         shotsTriggered = true;
@@ -199,13 +210,14 @@ public class BlueFarGamma extends OpMode {
 
             case toShootBall2:
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
-                    follower.followPath(toShootBall2, true);
+                    shooter.fullBall();
+                    follower.followPath(toShootBall2);
                     setPathState(PathState.toBall3);
                 }
                 break;
 
             case toBall3:
-                if (!follower.isBusy() && (shooter.getFlywheelVel1() > targetVelocity - 100 || pathTimer.getElapsedTimeSeconds() > 1.5)) {
+                if (!follower.isBusy() && atShootPose) {
                     if (!shotsTriggered) {
                         shooter.fireShot();
                         shotsTriggered = true;
@@ -218,38 +230,20 @@ public class BlueFarGamma extends OpMode {
 
             case toShootBall3:
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
-                    follower.followPath(toShootBall3, true);
-                    setPathState(PathState.toBall4);
-
-                }
-                break;
-
-            case toBall4:
-                if (!follower.isBusy() && (shooter.getFlywheelVel1() > targetVelocity - 100 || pathTimer.getElapsedTimeSeconds() > 1.5)) {
-                    if (!shotsTriggered) {
-                        shooter.fireShot();
-                        shotsTriggered = true;
-                    } else if (!shooter.isBusy()) {
-                        follower.followPath(toBall4);
-                        setPathState(PathState.toShootBall4);
-                    }
-                }
-                break;
-
-            case toShootBall4:
-                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
-                    follower.followPath(toShootBall4, true);
+                    shooter.fullBall();
+                    follower.followPath(toShootBall3);
                     setPathState(PathState.Finished);
 
                 }
                 break;
 
             case Finished:
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() && atShootPose) {
                     if (!shotsTriggered) {
                         shooter.fireShot();
                         shotsTriggered = true;
                     } else if (!shooter.isBusy()) {
+                        shooter.fullBall();
                         setPathState(PathState.toPark);
                     }
                 }
@@ -257,7 +251,7 @@ public class BlueFarGamma extends OpMode {
 
             case toPark:
                 if (!follower.isBusy()) {
-                    follower.followPath(toPark, true);
+                    follower.followPath(toPark);
                     setPathState(PathState.Idle);
                 }
                 break;
@@ -288,7 +282,7 @@ public class BlueFarGamma extends OpMode {
                                 new Pose(58.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(112))
+                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(109))
                 .build();
 
         toCollect3 = follower.pathBuilder()
@@ -309,7 +303,7 @@ public class BlueFarGamma extends OpMode {
                                 new Pose(58.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(115))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(116.5))
                 .build();
 
         toCollectHuman1 = follower.pathBuilder()
@@ -324,12 +318,13 @@ public class BlueFarGamma extends OpMode {
 
         toShootHuman1 = follower.pathBuilder()
                 .addPath(
-                        new BezierLine(
+                        new BezierCurve(
                                 new Pose(9.000, 8.000),
+                                new Pose(30.000, 23.000),
                                 new Pose(58.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(113))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(115.5))
                 .build();
 
         toBall1 = follower.pathBuilder()
@@ -344,12 +339,13 @@ public class BlueFarGamma extends OpMode {
 
         toShootBall1 = follower.pathBuilder()
                 .addPath(
-                        new BezierLine(
+                        new BezierCurve(
                                 new Pose(9.000, 8.000),
+                                new Pose(30.000, 23.000),
                                 new Pose(58.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(113))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(116.5))
                 .build();
 
         toBall2 = follower.pathBuilder()
@@ -364,12 +360,13 @@ public class BlueFarGamma extends OpMode {
 
         toShootBall2 = follower.pathBuilder()
                 .addPath(
-                        new BezierLine(
+                        new BezierCurve(
                                 new Pose(9.000, 8.000),
+                                new Pose(30.000, 23.000),
                                 new Pose(58.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(112))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(117.5))
                 .build();
 
         toBall3 = follower.pathBuilder()
@@ -384,32 +381,13 @@ public class BlueFarGamma extends OpMode {
 
         toShootBall3 = follower.pathBuilder()
                 .addPath(
-                        new BezierLine(
+                        new BezierCurve(
                                 new Pose(9.000, 8.000),
+                                new Pose(30.000, 23.000),
                                 new Pose(58.000, 19.000)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(112))
-                .build();
-
-        toBall4 = follower.pathBuilder()
-                .addPath(
-                        new BezierLine(
-                                new Pose(58.000, 19.000),
-                                new Pose(9.000, 24.000)
-                        )
-                )
-                .setConstantHeadingInterpolation(Math.toRadians(180))
-                .build();
-
-        toShootBall4 = follower.pathBuilder()
-                .addPath(
-                        new BezierLine(
-                                new Pose(9.000, 24.000),
-                                new Pose(58.000, 19.000)
-                        )
-                )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(112))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(116.8))
                 .build();
 
         toPark = follower.pathBuilder()
@@ -439,7 +417,7 @@ public class BlueFarGamma extends OpMode {
 
     private void autoFlywheel() {
         double distance = filteredDistance;
-        targetVelocity = Util.getFlywheelVelocityFromDistance(distance) - 20;
+        targetVelocity = Util.getFlywheelVelocityFromDistance(distance) - 40;
     }
 
     private void autoHood() {

@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.mechanism.ShooterV6;
 import org.firstinspires.ftc.teamcode.mechanism.Util;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Blue-Close-Solo",group = "Blue")
+//@Autonomous(name = "Blue-Close-Solo",group = "Blue")
 @Configurable
 public class BlueSolo extends OpMode {
 
@@ -35,8 +35,8 @@ public class BlueSolo extends OpMode {
     private double HoodPos = 0;
 
     // Pose
-    private final Pose startPose = PoseConstant.RedCloseAutoStartPose;
-    private static final Pose GOAL = PoseConstant.RED_GOAL;
+    private final Pose startPose = PoseConstant.BlueCloseAutoStartPose;
+    private static final Pose GOAL = PoseConstant.BLUE_GOAL;
     private final ElapsedTime timer = new ElapsedTime();
     private enum PathState {
         toShootPreload,
@@ -126,6 +126,8 @@ public class BlueSolo extends OpMode {
 
             case toShootPreload:
                 shooter.intakeOn();
+                shooter.setIntakeBoost(true);
+                shooter.outtakeOn();
                 shooter.fullBall();
                 follower.followPath(toShootPreload, true);
                 setPathState(PathState.toCollect2);
@@ -145,6 +147,7 @@ public class BlueSolo extends OpMode {
 
             case toShootC2:
                 if (!follower.isBusy()) {
+                    shooter.fullBall();
                     follower.followPath(toShootC2, true);
                     setPathState(PathState.toRampCollect1);
                 }
@@ -164,6 +167,7 @@ public class BlueSolo extends OpMode {
 
             case toShootR1:
                 if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 2.9 || shooter.isThreeBall())) {
+                    shooter.fullBall();
                     follower.followPath(toShootR1, true);
                     setPathState(PathState.toRampCollect2);
                 }
@@ -183,6 +187,7 @@ public class BlueSolo extends OpMode {
 
             case toShootR2:
                 if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 3 || shooter.isThreeBall())) {
+                    shooter.fullBall();
                     follower.followPath(toShootR2, true);
                     setPathState(PathState.toRampCollect3);
                 }
@@ -202,6 +207,7 @@ public class BlueSolo extends OpMode {
 
             case toShootR3:
                 if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 3 || shooter.isThreeBall())) {
+                    shooter.fullBall();
                     follower.followPath(toShootR3, true);
                     setPathState(PathState.toCollect1);
                 }
@@ -221,6 +227,7 @@ public class BlueSolo extends OpMode {
 
             case toShootC1:
                 if (!follower.isBusy()) {
+                    shooter.fullBall();
                     follower.followPath(toShootC1, true);
                     setPathState(PathState.Finished);
                 }
@@ -348,7 +355,7 @@ public class BlueSolo extends OpMode {
                 .addPath(
                         new BezierLine(
                                 new Pose(59.000, 80.000),
-                                new Pose(18.000, 84.000)
+                                new Pose(15.000, 84.000)
                         )
                 )
                 .setConstantHeadingInterpolation(Math.toRadians(180))

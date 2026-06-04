@@ -53,6 +53,7 @@ public class RedV6OpMode extends OpMode {
     double lastErrorLL = 0;
     double lastErrorOdo = 0;
     private final ElapsedTime timer = new ElapsedTime();
+    double odoOffset = 0;
 
     @Override
     public void init() {
@@ -63,8 +64,10 @@ public class RedV6OpMode extends OpMode {
             follower.setStartingPose(PoseConstant.AutoEndPose);
             PoseConstant.hasAutoPose = false;
         } else {
-        follower.setStartingPose(PoseConstant.RedCloseAutoStartPose);
+        follower.setStartingPose(PoseConstant.RedFarAutoStartPose);
         }
+
+//        follower.startTeleopDrive(true);
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(ShooterConstant.redTagPipeline);
@@ -127,16 +130,23 @@ public class RedV6OpMode extends OpMode {
                 follower.breakFollowing();
                 drive.stopDrive();
                 drive.setBrake();
+//                follower.startTeleOpDrive(true);
                 autoDriving = false;
             }
         } else {
             manualDrive();
             Aimbot(limelight.getLatestResult());
             drive.drive(forward, strafe, rotate);
+//            if (gamepad1.left_trigger > 0.5 || gamepad1.left_bumper) {
+//                drive.drive(forward,strafe,rotate);
+//            } else {
+//                follower.setTeleOpDrive(forward,-strafe,-rotate,true);
+//            }
         }
 
         // Subsystem
         subSystem();
+        setOdoOffset();
         shooter.update();
         indicateFullBall();
 
@@ -185,8 +195,13 @@ public class RedV6OpMode extends OpMode {
         telemetry.addLine("Dpad L/R - AdjustFlywheel & FlywheelOffset");
         telemetry.addLine("X - AutoFlywheel");
         telemetry.addLine("Y - AutoHood");
-        telemetry.addLine("A - ResetIntake");
+        telemetry.addLine("A - ToggleIntake");
+        telemetry.addLine("B - ResetIntake");
         telemetry.addLine("LB - ResetFarPose");
+        telemetry.addLine("RT - IntakeOn(Hold)");
+        telemetry.addLine("RB - OuttakeOn(Hold)");
+        telemetry.addLine("LS Button - odoOffsetLeft");
+        telemetry.addLine("RS Button - odoOffsetRight");
         telemetry.addLine("");
         telemetry.update();
     }
@@ -201,7 +216,7 @@ public class RedV6OpMode extends OpMode {
         PathChain shootPath = follower.pathBuilder()
                 .addPath(new BezierLine(
                         follower.getPose(),
-                        follower.getPose()
+                        PoseConstant.RedPark
                 ))
                 .setConstantHeadingInterpolation(PoseConstant.RedPark.getHeading())
                 .build();
@@ -226,7 +241,7 @@ public class RedV6OpMode extends OpMode {
         shooter.flywheelOn(targetVelocity);
 
         // Intake
-        if (gamepad1.aWasPressed()) {
+        if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
             intakeOn = !intakeOn;
         }
         if (intakeOn) {
@@ -234,10 +249,15 @@ public class RedV6OpMode extends OpMode {
         } else {
             shooter.intakeOff();
         }
-        if (gamepad2.a) {
+        if (gamepad2.bWasPressed()) {
             shooter.setReturnRequested();
         }
-//        shooter.setIntakeBoost(gamepad1.right_trigger > 0.5 || gamepad2.right_trigger > 0.5);
+        shooter.setIntakeBoost(gamepad2.right_trigger > 0.5);
+        if (gamepad2.right_bumper) {
+            shooter.outtakeOn();
+        } else {
+            shooter.outtakeOff();
+        }
 
         // Shooter
         if (gamepad1.right_bumper) {
@@ -283,7 +303,7 @@ public class RedV6OpMode extends OpMode {
                 // ===== ODOMETRY AIM =====
                 Pose robotPose = follower.getPose();
                 double targetHeading = Util.getAngleToGoal(robotPose, GOAL);
-                double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset + ShooterConstant.redOdoOffset);
+                double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset + ShooterConstant.redOdoOffset + odoOffset);
                 double pTerm = error * ShooterConstant.odokP;
                 double dTerm = 0;
                 if (dt > 0) {
@@ -306,7 +326,7 @@ public class RedV6OpMode extends OpMode {
             timer.reset();
             Pose robotPose = follower.getPose();
             double targetHeading = Util.getAngleToGoal(robotPose, GOAL);
-            double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset + ShooterConstant.redOdoOffset);
+            double error = Util.angleWrap(robotPose.getHeading() - targetHeading + ShooterConstant.odoOffset + ShooterConstant.redOdoOffset + odoOffset);
             double pTerm = error * ShooterConstant.odokP;
             double dTerm = 0;
             if (dt > 0) {
@@ -419,6 +439,14 @@ public class RedV6OpMode extends OpMode {
             HoodOffset += 0.01;
         } else if (gamepad2.dpadDownWasPressed()) {
             HoodOffset -= 0.01;
+        }
+    }
+
+    public void setOdoOffset() {
+        if (gamepad2.leftStickButtonWasPressed()) {
+            odoOffset -= Math.toRadians(0);
+        } else if (gamepad2.rightStickButtonWasPressed()) {
+            odoOffset += Math.toRadians(0);
         }
     }
 

@@ -396,7 +396,7 @@ public class RedV6Far extends OpMode {
 
     private void autoFlywheel() {
         double distance = filteredDistance;
-        targetVelocity = Util.getFlywheelVelocityFromDistance(distance) - 40;
+        targetVelocity = Util.getFlywheelVelocityFromDistance(distance);
     }
 
     private void autoHood() {

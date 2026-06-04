@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.mechanism.ShooterV6;
 import org.firstinspires.ftc.teamcode.mechanism.Util;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Red-Close-Solo",group = "Red")
+//@Autonomous(name = "Red-Close-Solo",group = "Red")
 @Configurable
 public class RedSolo extends OpMode {
 
@@ -98,7 +98,6 @@ public class RedSolo extends OpMode {
         autoFlywheel();
         autoHood();
 
-        targetVelocity = Range.clip(targetVelocity,0,1500);
         shooter.flywheelOn(targetVelocity);
         shooter.setHood(HoodPos);
 
@@ -126,13 +125,15 @@ public class RedSolo extends OpMode {
 
             case toShootPreload:
                 shooter.intakeOn();
+                shooter.setIntakeBoost(true);
+                shooter.outtakeOn();
                 shooter.fullBall();
                 follower.followPath(toShootPreload, true);
                 setPathState(PathState.toCollect2);
                 break;
 
             case toCollect2:
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() && shooter.getFlywheelVel1() > targetVelocity - 100) {
                     if (!shotsTriggered) {
                         shooter.fireShot();
                         shotsTriggered = true;
@@ -145,6 +146,7 @@ public class RedSolo extends OpMode {
 
             case toShootC2:
                 if (!follower.isBusy()) {
+                    shooter.fullBall();
                     follower.followPath(toShootC2, true);
                     setPathState(PathState.toRampCollect1);
                 }
@@ -164,6 +166,7 @@ public class RedSolo extends OpMode {
 
             case toShootR1:
                 if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 2.9 || shooter.isThreeBall())) {
+                    shooter.fullBall();
                     follower.followPath(toShootR1, true);
                     setPathState(PathState.toRampCollect2);
                 }
@@ -183,6 +186,7 @@ public class RedSolo extends OpMode {
 
             case toShootR2:
                 if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 3 || shooter.isThreeBall())) {
+                    shooter.fullBall();
                     follower.followPath(toShootR2, true);
                     setPathState(PathState.toRampCollect3);
                 }
@@ -202,6 +206,7 @@ public class RedSolo extends OpMode {
 
             case toShootR3:
                 if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 3 || shooter.isThreeBall())) {
+                    shooter.fullBall();
                     follower.followPath(toShootR3, true);
                     setPathState(PathState.toCollect1);
                 }
@@ -221,6 +226,7 @@ public class RedSolo extends OpMode {
 
             case toShootC1:
                 if (!follower.isBusy()) {
+                    shooter.fullBall();
                     follower.followPath(toShootC1, true);
                     setPathState(PathState.Finished);
                 }

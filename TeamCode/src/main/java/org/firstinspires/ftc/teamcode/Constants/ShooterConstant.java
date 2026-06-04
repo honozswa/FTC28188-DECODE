@@ -21,7 +21,7 @@ public class ShooterConstant {
     public static final double lastBallTransportTime = 0.3;
 
     /// Flywheel
-    public static final double AutoFlywheelOffset = 0;
+    public static final double AutoFlywheelOffset = 20;
     public static final double minTicks = 800;
     public static final double maxTicks = 1500;
     public static final PIDFCoefficients shooterPIDF = new PIDFCoefficients(277, 0, 0, 17.6);
@@ -36,13 +36,13 @@ public class ShooterConstant {
     public static final double odokP = 0.7;
     public static final double odokD = 0.05;
     public static final double odoOffset = Math.toRadians(0); // Degrees (-) -> left
-    public static final double blueOdoOffset = Math.toRadians(2);
+    public static final double blueOdoOffset = Math.toRadians(0);
     public static final double redOdoOffset = Math.toRadians(-2);
 
     // Limelight PID
     public static final double llkP = 0.01;
     public static final double llkD = 0;
-    public static final double llOffset = 4; // (+) -> right
+    public static final double llOffset = 0; // (+) -> right
     public static final int redTagPipeline = 4; // 2, 3, 4
     public static final int blueTagPipeline = 1; // 0, 1
 
